@@ -105,26 +105,54 @@
                                     <action selector="doSendMessage:" destination="vaw-0G-7ce" eventType="touchUpInside" id="xoe-yQ-0v2"/>
                                 </connections>
                             </button>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="1zd-wP-MIe">
+                                <rect key="frame" x="0.0" y="148" width="414" height="748"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ChatCell" rowHeight="47" id="UJb-Go-usu" customClass="ChatCell" customModule="Parsechat" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="47"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UJb-Go-usu" id="lcP-oN-daC">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="46.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZtL-Tc-3VB">
+                                                    <rect key="frame" x="20" y="11" width="374" height="21"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstAttribute="bottom" secondItem="1zd-wP-MIe" secondAttribute="bottom" id="7Ft-ef-imD"/>
+                            <constraint firstItem="1zd-wP-MIe" firstAttribute="top" secondItem="bWb-DX-Crl" secondAttribute="bottom" constant="20" id="Gpr-Zf-s4i"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="leading" secondItem="bWb-DX-Crl" secondAttribute="trailing" constant="20" id="Pxr-uJ-PsU"/>
                             <constraint firstItem="iXx-Z8-0LV" firstAttribute="trailing" secondItem="aBU-4e-VSz" secondAttribute="trailing" constant="20" id="QeJ-1h-ryo"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="centerY" secondItem="bWb-DX-Crl" secondAttribute="centerY" id="R2i-hP-FUA"/>
                             <constraint firstItem="bWb-DX-Crl" firstAttribute="top" secondItem="iXx-Z8-0LV" secondAttribute="top" constant="10" id="UCM-MK-SjP"/>
                             <constraint firstItem="bWb-DX-Crl" firstAttribute="leading" secondItem="iXx-Z8-0LV" secondAttribute="leading" constant="20" id="UmP-uD-hmd"/>
+                            <constraint firstItem="1zd-wP-MIe" firstAttribute="leading" secondItem="iXx-Z8-0LV" secondAttribute="leading" id="bXS-g2-VMa"/>
+                            <constraint firstItem="iXx-Z8-0LV" firstAttribute="trailing" secondItem="1zd-wP-MIe" secondAttribute="trailing" id="egX-kW-S8r"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="leading" secondItem="bWb-DX-Crl" secondAttribute="trailing" constant="20" id="wEF-9C-Pti"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="iXx-Z8-0LV"/>
                     </view>
                     <navigationItem key="navigationItem" title="Chat" id="ocN-em-cmY"/>
                     <connections>
+                        <outlet property="ProtoCell" destination="UJb-Go-usu" id="Qpu-B8-YRl"/>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9q2-cs-Pz0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2076.8115942028985" y="20.758928571428569"/>
+            <point key="canvasLocation" x="2075.36231884058" y="20.758928571428569"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Sj5-wI-nQd">
