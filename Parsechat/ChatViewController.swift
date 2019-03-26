@@ -14,26 +14,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Outlets
     @IBOutlet weak var chatMessageField: UITextField!
     @IBOutlet weak var ProtoCell: ChatCell!
+    @IBOutlet weak var tableViewOut: UITableView!
+    
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.onTimer), userInfo: nil, repeats: true)
 
-        // Do any additional setup after loading the view.
-        // construct query
-        let query = Post.query()
-        query.whereKey("likesCount", greaterThan: 100)
-        query.limit = 20
         
-        // fetch data asynchronously
-        query.findObjectsInBackground { (posts: [Post]?, error: Error?) in
-            if let posts = posts {
-                // do something with the array of object returned by the call
-            } else {
-                print(error?.localizedDescription)
-            }
-        }
     }
     
     @IBAction func doSendMessage(_ sender: Any) {
@@ -51,16 +40,53 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        <#code#>
+        return 5;
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        <#code#>
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell") as! ChatCell;
+        
+        
+        return cell;
     }
     
     @objc func onTimer() {
         // Add code to be run periodically
-    
+        // Do any additional setup after loading the view.
+        // construct query
+        //let query = Post.query()
+        let query = PFQuery(className:"Messages")
+        query.whereKey("likesCount", greaterThan: 100)
+        query.limit = 20
+        
+        //let query = PFQuery(className:"GameScore")
+        //query.whereKey("playerName", equalTo:"Sean Plott")
+        query.findObjectsInBackground { (objects: [PFObject]?, error: Error?) in
+            if let error = error {
+                // Log details of the failure
+                print(error.localizedDescription)
+            } else if let objects = objects {
+                // The find succeeded.
+                print("Successfully retrieved \(objects.count) scores.")
+                // Do something with the found objects
+                for object in objects {
+                    print(object.objectId as Any)
+                    query.addDescendingOrder("createdAt")
+                }
+            }
+        }
+        
+        self.tableViewOut.reloadData();
+        
+        /*// fetch data asynchronously
+         query.findObjectsInBackground { (posts: [Post]?, error: Error?) in
+         if let posts = posts {
+         // do something with the array of object returned by the call
+         } else {
+         print(error?.localizedDescription)
+         }
+         }
+         */
     }
 
 }

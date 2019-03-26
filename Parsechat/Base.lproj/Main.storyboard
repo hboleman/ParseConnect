@@ -146,8 +146,8 @@
                     </view>
                     <navigationItem key="navigationItem" title="Chat" id="ocN-em-cmY"/>
                     <connections>
-                        <outlet property="ProtoCell" destination="UJb-Go-usu" id="Qpu-B8-YRl"/>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
+                        <outlet property="tableViewOut" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9q2-cs-Pz0" userLabel="First Responder" sceneMemberID="firstResponder"/>
