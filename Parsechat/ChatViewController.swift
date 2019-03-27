@@ -13,21 +13,26 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Outlets
     @IBOutlet weak var chatMessageField: UITextField!
-    @IBOutlet weak var ProtoCell: ChatCell!
-    @IBOutlet weak var tableViewOut: UITableView!
+    @IBOutlet weak var tableView: UITableView!
     
-    
+    // Global Variables
+    var chatMessages: [PFObject] = [];
     
     override func viewDidLoad() {
         super.viewDidLoad()
         Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.onTimer), userInfo: nil, repeats: true)
-
-        
+        tableView.dataSource = self as UITableViewDataSource
+        // Auto size row height based on cell autolayout constraints
+        tableView.rowHeight = UITableView.automaticDimension
+        // Provide an estimated row height. Used for calculating scroll indicator
+        tableView.estimatedRowHeight = 50
+        tableView.reloadData();
     }
     
     @IBAction func doSendMessage(_ sender: Any) {
         let chatMessage = PFObject(className: "Message");
         chatMessage["text"] = chatMessageField.text ?? ""
+        chatMessage["user"] = PFUser.current();
         
         chatMessage.saveInBackground { (success, error) in
             if success {
@@ -46,6 +51,17 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell") as! ChatCell;
         
+        //cell.textLabel.text =
+        
+        
+        if let user = chatMessage["user"] as? PFUser {
+            // User found! update username label with username
+            cell.usernameLabel.text = user.username
+        } else {
+            // No user found, set default username
+            cell.usernameLabel.text = "🤖"
+        }
+        
         
         return cell;
     }
@@ -59,6 +75,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         query.whereKey("likesCount", greaterThan: 100)
         query.limit = 20
         
+        query.includeKey("user")
+        
         //let query = PFQuery(className:"GameScore")
         //query.whereKey("playerName", equalTo:"Sean Plott")
         query.findObjectsInBackground { (objects: [PFObject]?, error: Error?) in
@@ -67,7 +85,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print(error.localizedDescription)
             } else if let objects = objects {
                 // The find succeeded.
-                print("Successfully retrieved \(objects.count) scores.")
+                print("Successfully retrieved \(objects.count) posts.")
                 // Do something with the found objects
                 for object in objects {
                     print(object.objectId as Any)
@@ -76,7 +94,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
         }
         
-        self.tableViewOut.reloadData();
+        self.tableView.reloadData();
         
         /*// fetch data asynchronously
          query.findObjectsInBackground { (posts: [Post]?, error: Error?) in

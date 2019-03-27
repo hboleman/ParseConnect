@@ -109,22 +109,40 @@
                                 <rect key="frame" x="0.0" y="148" width="414" height="748"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ChatCell" rowHeight="47" id="UJb-Go-usu" customClass="ChatCell" customModule="Parsechat" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="28" width="414" height="47"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ChatCell" rowHeight="114" id="UJb-Go-usu" customClass="ChatCell" customModule="Parsechat" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="114"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UJb-Go-usu" id="lcP-oN-daC">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="46.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="113.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZtL-Tc-3VB">
-                                                    <rect key="frame" x="20" y="11" width="374" height="21"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZtL-Tc-3VB">
+                                                    <rect key="frame" x="8" y="37" width="398" height="68.5"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qgv-MC-rob">
+                                                    <rect key="frame" x="8" y="8" width="398" height="21"/>
+                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="ZtL-Tc-3VB" firstAttribute="leading" secondItem="lcP-oN-daC" secondAttribute="leading" constant="8" id="8Dw-z0-tay"/>
+                                                <constraint firstItem="qgv-MC-rob" firstAttribute="leading" secondItem="lcP-oN-daC" secondAttribute="leading" constant="8" id="8fT-Nd-ygI"/>
+                                                <constraint firstItem="ZtL-Tc-3VB" firstAttribute="top" secondItem="qgv-MC-rob" secondAttribute="bottom" constant="8" id="DlY-zP-YiG"/>
+                                                <constraint firstAttribute="trailing" secondItem="ZtL-Tc-3VB" secondAttribute="trailing" constant="8" id="MQm-xo-rUR"/>
+                                                <constraint firstAttribute="trailing" secondItem="qgv-MC-rob" secondAttribute="trailing" constant="8" id="PNX-qv-NHK"/>
+                                                <constraint firstAttribute="bottom" secondItem="ZtL-Tc-3VB" secondAttribute="bottom" constant="8" id="Twk-dL-4SQ"/>
+                                                <constraint firstItem="qgv-MC-rob" firstAttribute="top" secondItem="lcP-oN-daC" secondAttribute="top" constant="8" id="zvS-Xc-SX7"/>
+                                            </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="messageLable" destination="ZtL-Tc-3VB" id="hhd-tq-UoL"/>
+                                            <outlet property="usernameLable" destination="qgv-MC-rob" id="vjA-O6-BdU"/>
+                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
@@ -147,7 +165,7 @@
                     <navigationItem key="navigationItem" title="Chat" id="ocN-em-cmY"/>
                     <connections>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
-                        <outlet property="tableViewOut" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
+                        <outlet property="tableView" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9q2-cs-Pz0" userLabel="First Responder" sceneMemberID="firstResponder"/>
