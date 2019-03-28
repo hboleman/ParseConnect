@@ -35,23 +35,6 @@ class LoginViewController: UIViewController {
     }
     
     func isNotEmpty() -> Bool{
-        /*var alertController = UIAlertController(title: "Empty Fields!", message: "Please enter both a username and password", preferredStyle: .alert)
-        
-        // create a cancel action
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
-            // handle cancel response here. Doing nothing will dismiss the view.
-        }
-        // add the cancel action to the alertController
-        alertController.addAction(cancelAction)
-        
-        // create an OK action
-        let OKAction = UIAlertAction(title: "OK", style: .default) { (action) in
-            // handle response here.
-        }
-        // add the OK action to the alert controller
-        alertController.addAction(OKAction)
- */
-        
         if (usernameField.text?.isEmpty == true && passwordField.text?.isEmpty == true){
             let alertController = UIAlertController(title: "Empty Fields!", message: "Please enter both a username and password", preferredStyle: .alert)
             // create a cancel action
@@ -162,8 +145,8 @@ class LoginViewController: UIViewController {
     
     func loginUser() {
         
-        let username = usernameField.text ?? ""
-        let password = passwordField.text ?? ""
+        let username = usernameField.text!
+        let password = passwordField.text!
         
         PFUser.logInWithUsername(inBackground: username, password: password) { (user: PFUser?, error: Error?) in
             if let error = error {
@@ -176,5 +159,4 @@ class LoginViewController: UIViewController {
             }
         }
     }
-
 }
