@@ -34,8 +34,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     @IBAction func doSendMessage(_ sender: Any) {
-        let chatMessage = PFObject(className: "Message");
-        chatMessage["text"] = chatMessageField.text ?? ""
+        let chatMessage = PFObject(className: "Messages");
+        chatMessage["text"] = chatMessageField.text!
         chatMessage["user"] = PFUser.current();
         
         chatMessage.saveInBackground { (success, error) in
@@ -55,13 +55,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Reusable Cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell") as! ChatCell;
-        
         // gets a single message
         let chatMessage = chatMessages[indexPath.row];
-        
         // Set text
         cell.messageLable.text = chatMessage["text"] as? String;
-        
         //Set username
         if let user = chatMessage["user"] as? PFUser {
             // User found! update username label with username
@@ -70,7 +67,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             // No user found, set default username
             cell.usernameLabel.text = "🤖"
         }
-        
         return cell;
     }
     
@@ -88,10 +84,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 // The find succeeded.
                 self.chatMessages = messages
                 print("Successfully retrieved \(messages.count) posts.")
-                // Do something with the found objects
-                //for messages in messages {
-                //    print(messages.objectId as Any)
-                //}
             }
         }
         print ("reload tableView")
