@@ -87,13 +87,13 @@
         <!--Chat-->
         <scene sceneID="X8x-N9-Sim">
             <objects>
-                <viewController id="vaw-0G-7ce" customClass="ChatViewController" customModule="Parsechat" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ChatViewController" id="vaw-0G-7ce" customClass="ChatViewController" customModule="Parsechat" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6h2-e4-5Y0">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bWb-DX-Crl">
-                                <rect key="frame" x="20" y="98" width="318" height="30"/>
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="249" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bWb-DX-Crl">
+                                <rect key="frame" x="68" y="98" width="270" height="30"/>
                                 <nil key="textColor"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -146,19 +146,28 @@
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HeD-HI-DQC">
+                                <rect key="frame" x="10" y="98" width="48" height="30"/>
+                                <state key="normal" title="Logout"/>
+                                <connections>
+                                    <action selector="doLogout:" destination="vaw-0G-7ce" eventType="touchUpInside" id="Ol0-dH-ic0"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="1zd-wP-MIe" secondAttribute="bottom" id="7Ft-ef-imD"/>
-                            <constraint firstItem="1zd-wP-MIe" firstAttribute="top" secondItem="bWb-DX-Crl" secondAttribute="bottom" constant="20" id="Gpr-Zf-s4i"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="leading" secondItem="bWb-DX-Crl" secondAttribute="trailing" constant="20" id="Pxr-uJ-PsU"/>
                             <constraint firstItem="iXx-Z8-0LV" firstAttribute="trailing" secondItem="aBU-4e-VSz" secondAttribute="trailing" constant="20" id="QeJ-1h-ryo"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="centerY" secondItem="bWb-DX-Crl" secondAttribute="centerY" id="R2i-hP-FUA"/>
-                            <constraint firstItem="bWb-DX-Crl" firstAttribute="top" secondItem="iXx-Z8-0LV" secondAttribute="top" constant="10" id="UCM-MK-SjP"/>
-                            <constraint firstItem="bWb-DX-Crl" firstAttribute="leading" secondItem="iXx-Z8-0LV" secondAttribute="leading" constant="20" id="UmP-uD-hmd"/>
                             <constraint firstItem="1zd-wP-MIe" firstAttribute="leading" secondItem="iXx-Z8-0LV" secondAttribute="leading" id="bXS-g2-VMa"/>
+                            <constraint firstItem="bWb-DX-Crl" firstAttribute="centerY" secondItem="HeD-HI-DQC" secondAttribute="centerY" id="cAO-eb-cYE"/>
                             <constraint firstItem="iXx-Z8-0LV" firstAttribute="trailing" secondItem="1zd-wP-MIe" secondAttribute="trailing" id="egX-kW-S8r"/>
+                            <constraint firstItem="1zd-wP-MIe" firstAttribute="top" secondItem="bWb-DX-Crl" secondAttribute="bottom" constant="20" id="h2D-7A-l7V"/>
+                            <constraint firstItem="bWb-DX-Crl" firstAttribute="leading" secondItem="HeD-HI-DQC" secondAttribute="trailing" constant="10" id="ljY-NO-4Fl"/>
                             <constraint firstItem="aBU-4e-VSz" firstAttribute="leading" secondItem="bWb-DX-Crl" secondAttribute="trailing" constant="20" id="wEF-9C-Pti"/>
+                            <constraint firstItem="bWb-DX-Crl" firstAttribute="top" secondItem="iXx-Z8-0LV" secondAttribute="top" constant="10" id="y1b-rj-bhK"/>
+                            <constraint firstItem="HeD-HI-DQC" firstAttribute="leading" secondItem="iXx-Z8-0LV" secondAttribute="leading" constant="10" id="yzl-rB-2BI"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="iXx-Z8-0LV"/>
                     </view>
@@ -166,6 +175,7 @@
                     <connections>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
                         <outlet property="tableView" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
+                        <segue destination="BYZ-38-t0r" kind="showDetail" identifier="LogoutSeg" id="QcH-p3-rTU"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9q2-cs-Pz0" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -188,7 +198,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="b21-hC-LZB" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1166.6666666666667" y="20.758928571428569"/>
+            <point key="canvasLocation" x="1354" y="-776"/>
         </scene>
     </scenes>
 </document>

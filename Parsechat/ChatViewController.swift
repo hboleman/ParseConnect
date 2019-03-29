@@ -70,6 +70,16 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
     }
     
+    // Allows The User to Logout
+    @IBAction func doLogout(_ sender: Any) {
+        PFUser.logOutInBackground { (error) in
+            if (error != nil) {
+                print("Error, cannot logout: \(String(describing: error))")
+            }
+        }
+        self.performSegue(withIdentifier: "LogoutSeg", sender: nil)
+    }
+    
     // TABLE VIEW FUNCTIONS
     
     // Sets Table Rows

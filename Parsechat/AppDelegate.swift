@@ -22,14 +22,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             configuration.server = "http://45.79.67.127:1337/parse"
         }))
         
-        // Code to initialize Parse
-        // (See above section 'Parse `initializeWithConfiguration` vs `setApplicationId`', if you have not already set it up)
-        
-        // check if user is logged in.
-        if PFUser.current() != nil {
+        if let currentUser = PFUser.current() {
+            print("Welcome back \(currentUser.username!) 😀")
+                // TODO: Load Chat view controller and set as root view controller
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            // view controller currently being set in Storyboard as default will be overridden
-            //window?.rootViewController = storyboard.instantiateViewController(withIdentifier: "AuthenticatedViewController")
+            let chatViewController = storyboard.instantiateViewController(withIdentifier: "ChatViewController")
+            window?.rootViewController = chatViewController
         }
         return true
     }
@@ -55,7 +53,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
-
 }
 
