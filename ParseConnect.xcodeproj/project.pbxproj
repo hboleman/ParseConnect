@@ -48,16 +48,16 @@
 		5A01B314224965DB00D88090 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		5A01B316224972D200D88090 /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		5A01B318224977DD00D88090 /* ChatCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCell.swift; sourceTree = "<group>"; };
-		5A70143C224962DF009EC77F /* Parsechat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Parsechat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A70143C224962DF009EC77F /* ParseConnect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParseConnect.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A70143F224962DF009EC77F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5A701444224962DF009EC77F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		5A701446224962E1009EC77F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5A701449224962E1009EC77F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5A70144B224962E1009EC77F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5A701450224962E1009EC77F /* ParsechatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParsechatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A701450224962E1009EC77F /* ParseConnectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParseConnectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A701454224962E1009EC77F /* ParsechatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsechatTests.swift; sourceTree = "<group>"; };
 		5A701456224962E1009EC77F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5A70145B224962E1009EC77F /* ParsechatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParsechatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A70145B224962E1009EC77F /* ParseConnectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParseConnectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A70145F224962E1009EC77F /* ParsechatUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsechatUITests.swift; sourceTree = "<group>"; };
 		5A701461224962E1009EC77F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7B4FAA52FAA638D70F4662CD /* Pods_ParsechatUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ParsechatUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,9 +118,9 @@
 		5A70143D224962DF009EC77F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5A70143C224962DF009EC77F /* Parsechat.app */,
-				5A701450224962E1009EC77F /* ParsechatTests.xctest */,
-				5A70145B224962E1009EC77F /* ParsechatUITests.xctest */,
+				5A70143C224962DF009EC77F /* ParseConnect.app */,
+				5A701450224962E1009EC77F /* ParseConnectTests.xctest */,
+				5A70145B224962E1009EC77F /* ParseConnectUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,9 +174,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5A70143B224962DF009EC77F /* Parsechat */ = {
+		5A70143B224962DF009EC77F /* ParseConnect */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5A701464224962E1009EC77F /* Build configuration list for PBXNativeTarget "Parsechat" */;
+			buildConfigurationList = 5A701464224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnect" */;
 			buildPhases = (
 				3BBDE9642D3AFC3EB7B5918A /* [CP] Check Pods Manifest.lock */,
 				5A701438224962DF009EC77F /* Sources */,
@@ -188,14 +188,14 @@
 			);
 			dependencies = (
 			);
-			name = Parsechat;
+			name = ParseConnect;
 			productName = Parsechat;
-			productReference = 5A70143C224962DF009EC77F /* Parsechat.app */;
+			productReference = 5A70143C224962DF009EC77F /* ParseConnect.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5A70144F224962E1009EC77F /* ParsechatTests */ = {
+		5A70144F224962E1009EC77F /* ParseConnectTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5A701467224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParsechatTests" */;
+			buildConfigurationList = 5A701467224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnectTests" */;
 			buildPhases = (
 				71C8F48B07A3A4E9B271D6D8 /* [CP] Check Pods Manifest.lock */,
 				5A70144C224962E1009EC77F /* Sources */,
@@ -207,14 +207,14 @@
 			dependencies = (
 				5A701452224962E1009EC77F /* PBXTargetDependency */,
 			);
-			name = ParsechatTests;
+			name = ParseConnectTests;
 			productName = ParsechatTests;
-			productReference = 5A701450224962E1009EC77F /* ParsechatTests.xctest */;
+			productReference = 5A701450224962E1009EC77F /* ParseConnectTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5A70145A224962E1009EC77F /* ParsechatUITests */ = {
+		5A70145A224962E1009EC77F /* ParseConnectUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5A70146A224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParsechatUITests" */;
+			buildConfigurationList = 5A70146A224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnectUITests" */;
 			buildPhases = (
 				A948A8876DF33E195721FCE4 /* [CP] Check Pods Manifest.lock */,
 				5A701457224962E1009EC77F /* Sources */,
@@ -226,9 +226,9 @@
 			dependencies = (
 				5A70145D224962E1009EC77F /* PBXTargetDependency */,
 			);
-			name = ParsechatUITests;
+			name = ParseConnectUITests;
 			productName = ParsechatUITests;
-			productReference = 5A70145B224962E1009EC77F /* ParsechatUITests.xctest */;
+			productReference = 5A70145B224962E1009EC77F /* ParseConnectUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -254,7 +254,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5A701437224962DF009EC77F /* Build configuration list for PBXProject "Parsechat" */;
+			buildConfigurationList = 5A701437224962DF009EC77F /* Build configuration list for PBXProject "ParseConnect" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -267,9 +267,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5A70143B224962DF009EC77F /* Parsechat */,
-				5A70144F224962E1009EC77F /* ParsechatTests */,
-				5A70145A224962E1009EC77F /* ParsechatUITests */,
+				5A70143B224962DF009EC77F /* ParseConnect */,
+				5A70144F224962E1009EC77F /* ParseConnectTests */,
+				5A70145A224962E1009EC77F /* ParseConnectUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -427,12 +427,12 @@
 /* Begin PBXTargetDependency section */
 		5A701452224962E1009EC77F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5A70143B224962DF009EC77F /* Parsechat */;
+			target = 5A70143B224962DF009EC77F /* ParseConnect */;
 			targetProxy = 5A701451224962E1009EC77F /* PBXContainerItemProxy */;
 		};
 		5A70145D224962E1009EC77F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5A70143B224962DF009EC77F /* Parsechat */;
+			target = 5A70143B224962DF009EC77F /* ParseConnect */;
 			targetProxy = 5A70145C224962E1009EC77F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -629,7 +629,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Parsechat.app/Parsechat";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParseConnect.app/ParseConnect";
 			};
 			name = Debug;
 		};
@@ -651,7 +651,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Parsechat.app/Parsechat";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParseConnect.app/ParseConnect";
 			};
 			name = Release;
 		};
@@ -700,7 +700,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5A701437224962DF009EC77F /* Build configuration list for PBXProject "Parsechat" */ = {
+		5A701437224962DF009EC77F /* Build configuration list for PBXProject "ParseConnect" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A701462224962E1009EC77F /* Debug */,
@@ -709,7 +709,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5A701464224962E1009EC77F /* Build configuration list for PBXNativeTarget "Parsechat" */ = {
+		5A701464224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnect" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A701465224962E1009EC77F /* Debug */,
@@ -718,7 +718,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5A701467224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParsechatTests" */ = {
+		5A701467224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnectTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A701468224962E1009EC77F /* Debug */,
@@ -727,7 +727,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5A70146A224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParsechatUITests" */ = {
+		5A70146A224962E1009EC77F /* Build configuration list for PBXNativeTarget "ParseConnectUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A70146B224962E1009EC77F /* Debug */,
