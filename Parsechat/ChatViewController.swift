@@ -21,6 +21,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var userFound: Bool = false;
     var userAck: Bool = false;
     var currentMatchMake: Int = 1;
+    var listeningForUsers: Bool = false;
+    var listeningCount: Int = 0;
+    var listeningCountMax: Int = 10;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,16 +80,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func ListenForUsers(){
         print("Listening for Users")
         //chatMessageField.text = "LISTENING FOR USER";
-        
-        while (userFound == false){
-            // START HANDSHAKE MECHANISMS
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3), execute: {
-                // Put your code which should be executed with a delay here
-                //self.startHandshake();
-            })
-            
-            // END HANDSHAKE MECHANISMS
-        }
+        listeningForUsers = true;
     }
     
     @objc func getMatchMakeMsg() -> Bool {
@@ -113,6 +107,20 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             print ("reload tableView")
             self.tableView.reloadData();
         }
+        
+        // LOGIC FOR LISTENING SECTION
+        if (listeningForUsers == true){
+            // START HANDSHAKE MECHANISMS
+            if (listeningCount >= listeningCountMax){
+                print("Max Count Reached")
+            }
+                print("Fake Start Handshake")
+            listeningCount = listeningCount + 1;
+                //self.startHandshake();
+            // END HANDSHAKE MECHANISMS
+        }
+        //LOGIC FOR LISTENING SECTION
+        
         return returnFlag;
     }
     
