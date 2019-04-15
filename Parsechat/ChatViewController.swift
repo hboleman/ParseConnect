@@ -20,10 +20,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var userToMatchMake: String = "";
     var userFound: Bool = false;
     var userAck: Bool = false;
-    var currentMatchMake: Int = 1;
+    var currentMatchMake: Int = 0;
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
-    var listeningCountMax: Int = 10;
+    var listeningCountMax: Int = 3;
     var isAtemptingHandshake: Bool = false;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
@@ -47,6 +47,21 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         // Match Making
         startMatchMaking();
+    }
+    
+    func resetVals(){
+        userToMatchMake = "";
+        userFound = false;
+        userAck = false;
+        currentMatchMake = 1;
+        listeningForUsers = false;
+        listeningCount = 0;
+        listeningCountMax = 3;
+        isAtemptingHandshake = false;
+        isAtemptingAck = false;
+        AckLevel = 0;
+        connectionEstablished = false;
+        SessionName = "";
     }
     
     // Start Match Making Process
@@ -140,10 +155,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             // START HANDSHAKE MECHANISMS
             if (listeningCount >= listeningCountMax){
                 print("Max Listening Atempts Reached - Handshake Aborted")
-                isAtemptingHandshake = false;
-                userFound = false;
-                listeningForUsers = false;
-                isAtemptingAck = false;
+                resetVals();
             }
             listeningCount = listeningCount + 1;
             isAtemptingHandshake = true;
@@ -153,10 +165,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         else if (isAtemptingAck == true){
             if (listeningCount >= listeningCountMax){
                 print("Max Ack Listening Atempts Reached - Handshake Aborted")
-                isAtemptingHandshake = false;
-                userFound = false;
-                isAtemptingAck = false;
-                listeningForUsers = false;
+                resetVals();
             }
             listeningCount = listeningCount + 1;
             
@@ -191,11 +200,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             
             if (listeningCount >= listeningCountMax){
                 print("Max Ack Listening Atempts Reached - Handshake Aborted")
-                isAtemptingHandshake = false;
-                userFound = false;
-                isAtemptingAck = false;
-                listeningForUsers = false;
-                AckLevel = 0;
+                resetVals();
             }
             listeningCount = listeningCount + 1;
             
