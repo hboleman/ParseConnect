@@ -24,6 +24,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
     var listeningCountMax: Int = 10;
+    var isAtemptingHandshake: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,26 +84,28 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         listeningForUsers = true;
     }
     
-    @objc func getMatchMakeMsg() -> Bool {
+    @objc func getMatchMakeMsg() {
+        //var returnFlag: Bool = false;
+        if (isAtemptingHandshake == false){
         print("Getting Match Make Messages")
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
         query.limit = 10
         query.includeKey("user")
-        var returnFlag: Bool = false;
+        //var returnFlag: Bool = false;
         
         query.findObjectsInBackground { (messages, error) in
             if let error = error {
                 // Log details of the failure
                 print(error.localizedDescription)
-                returnFlag = false;
+                //returnFlag = false;
             } else if let message = messages {
                 // The find succeeded.
                 self.chatMessages = message
                 var _: String = "";
                 var _: String = "";
                 print("Successfully retrieved \(message.count) posts.")
-                returnFlag = true;
+                //returnFlag = true;
             }
             print ("reload tableView")
             self.tableView.reloadData();
@@ -114,17 +117,20 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             if (listeningCount >= listeningCountMax){
                 print("Max Count Reached")
             }
-                print("Fake Start Handshake")
+                //print("Fake Start Handshake")
             listeningCount = listeningCount + 1;
-                //self.startHandshake();
+                isAtemptingHandshake = true;
+                self.startHandshake();
+            isAtemptingHandshake = false;
             // END HANDSHAKE MECHANISMS
         }
         //LOGIC FOR LISTENING SECTION
         
-        return returnFlag;
+        //return returnFlag;
+        }
     }
     
-    /*
+    
     func startHandshake(){
         print("Start Handshake")
         // START HANDSHAKE MECHANISMS
@@ -137,20 +143,20 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         // END HANDSHAKE MECHANISMS
         }
     }
-     */
+    
     
     func startAcknowledgement(){
         print ("Start ACK")
         
     }
     
-    /*
+    
     func anyUserOpen() -> Bool {
         print("Any Users Open?")
         // Looking for open
         let countOfMessages = self.chatMessages.count;
         
-        for index in 1...countOfMessages {
+        for index in 1..<countOfMessages {
             // gets a single message
             let chatMessage = self.chatMessages[index];
             let msg = (chatMessage["text"] as? String)!;
@@ -166,9 +172,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         return false;
     }
-     */
     
-    /*
+    
+    
     // Checks latest message of a given user and sees if that one says open or not.
     func isUserOpen () -> Bool{
         print("Is User Open?")
@@ -177,25 +183,30 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         let countOfMessages = self.chatMessages.count;
         // Get number for latest message
         var mostRecentMsg: Int = 0;
-        for index in 1...countOfMessages {
+        
+        for index in 0..<countOfMessages {
+            // gets a single message
             let chatMessage = self.chatMessages[index];
             let curr = (chatMessage["current"] as? Int)!;
-            let usr_i = (chatMessage["user"] as? String)!;
+            let usr = (chatMessage["user"] as? PFUser)!.username;
             // Find latest message
-            if (usr_i == self.userToMatchMake && curr > mostRecentMsg){
+            if (usr == self.userToMatchMake && curr > mostRecentMsg){
                 mostRecentMsg = curr;
+                print ("Most recent message found is: \(curr)");
             }
         }
+        
         // Find latest message and see if open
-        for index in 1...countOfMessages {
+        for index in 1..<countOfMessages {
+            // gets a single message
             let chatMessage = self.chatMessages[index];
             let curr = (chatMessage["current"] as? Int)!;
-            let usr_i = (chatMessage["user"] as? String)!;
-            let msg_i = (chatMessage["text"] as? String)!;
+            let usr = (chatMessage["user"] as? PFUser)!.username;
+            let msg = (chatMessage["text"] as? String)!;
             
             // Finds most recent message based on work above
-            if (usr_i == self.userToMatchMake && curr == mostRecentMsg){
-                if (msg_i == "STATUS:OPEN"){
+            if (usr == self.userToMatchMake && curr == mostRecentMsg){
+                if (msg == "STATUS:OPEN"){
                     print ("FOUND: OPEN AND RECENT")
                     return true;
                 }
@@ -207,7 +218,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         return false;
     }
- */
+ 
     
     //---------- Old Chat Stuff ----------//
     
