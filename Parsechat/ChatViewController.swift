@@ -25,6 +25,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var listeningCount: Int = 0;
     var listeningCountMax: Int = 10;
     var isAtemptingHandshake: Bool = false;
+    var isAtemptingAck: Bool = false;
+    var AckLevel: Int = 0;
+    var connectionEstablished: Bool = false;
+    var SessionName: String = "";
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,9 +39,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         // Provide an estimated row height. Used for calculating scroll indicator
         tableView.estimatedRowHeight = 50
         // Sets getChatMessage to retrieve messages every 5 seconds
-        Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.getMatchMakeMsg), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
         // runs getChatMessages for the first time
-        getMatchMakeMsg();
+        timedFunc();
         print ("reload tableView")
         self.tableView.reloadData();
         
@@ -53,14 +57,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         userFound = false;
         StatusOpen();
         ListenForUsers();
+        
     }
     
     //Set Match Status to Open
     func StatusOpen() {
         print("Set Status to Open")
         let chatMessage = PFObject(className: "MatchMake");
-        //chatMessage["text"] = chatMessageField.text!
-        chatMessageField.text = "STATUS OPEN";
+        //chatMessageField.text = "STATUS OPEN";
         chatMessage["text"] = "STATUS:OPEN"
         chatMessage["user"] = PFUser.current();
         chatMessage["current"] = currentMatchMake;
@@ -75,7 +79,33 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-     
+    
+    func SendAck(){
+        print("Sent Ack")
+        let chatMessage = PFObject(className: "Ack");
+        //chatMessageField.text = "STATUS OPEN";
+        if (AckLevel == 0){
+            chatMessage["text"] = "FirstAck:\(userToMatchMake)"
+        }
+        if (AckLevel == 2){
+            chatMessage["text"] = "SecondAck:\(userToMatchMake)"
+        }
+        if (AckLevel == 3){
+            chatMessage["text"] = "FinalAck:\(userToMatchMake)"
+        }
+        chatMessage["user"] = PFUser.current();
+        chatMessage["current"] = currentMatchMake;
+        currentMatchMake = currentMatchMake + 1;
+        
+        chatMessage.saveInBackground { (success, error) in
+            if success {
+                print("The message was saved!")
+                self.chatMessageField.text = "";
+            } else if let error = error {
+                print("Problem saving message: \(error.localizedDescription)")
+            }
+        }
+    }
     
     // Listen for Open User
     func ListenForUsers(){
@@ -84,49 +114,186 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         listeningForUsers = true;
     }
     
-    @objc func getMatchMakeMsg() {
-        //var returnFlag: Bool = false;
-        if (isAtemptingHandshake == false){
+    func getMatchMsg(){
         print("Getting Match Make Messages")
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
         query.limit = 10
         query.includeKey("user")
-        //var returnFlag: Bool = false;
         
         query.findObjectsInBackground { (messages, error) in
             if let error = error {
                 // Log details of the failure
                 print(error.localizedDescription)
-                //returnFlag = false;
             } else if let message = messages {
                 // The find succeeded.
                 self.chatMessages = message
-                var _: String = "";
-                var _: String = "";
                 print("Successfully retrieved \(message.count) posts.")
-                //returnFlag = true;
             }
             print ("reload tableView")
             self.tableView.reloadData();
         }
-        
-        // LOGIC FOR LISTENING SECTION
-        if (listeningForUsers == true){
+    }
+    
+    func listenForMatch(){
+        if (isAtemptingAck == false){
             // START HANDSHAKE MECHANISMS
             if (listeningCount >= listeningCountMax){
-                print("Max Count Reached")
+                print("Max Listening Atempts Reached - Handshake Aborted")
+                isAtemptingHandshake = false;
+                userFound = false;
+                listeningForUsers = false;
+                isAtemptingAck = false;
             }
-                //print("Fake Start Handshake")
             listeningCount = listeningCount + 1;
-                isAtemptingHandshake = true;
-                self.startHandshake();
-            isAtemptingHandshake = false;
+            isAtemptingHandshake = true;
+            self.startHandshake();
             // END HANDSHAKE MECHANISMS
         }
-        //LOGIC FOR LISTENING SECTION
+        else if (isAtemptingAck == true){
+            if (listeningCount >= listeningCountMax){
+                print("Max Ack Listening Atempts Reached - Handshake Aborted")
+                isAtemptingHandshake = false;
+                userFound = false;
+                isAtemptingAck = false;
+                listeningForUsers = false;
+            }
+            listeningCount = listeningCount + 1;
+            
+            print("Getting Acknowledgement Messages")
+            let query = PFQuery(className:"Ack")
+            query.addDescendingOrder("createdAt")
+            query.limit = 10
+            query.includeKey("user")
+            
+            query.findObjectsInBackground { (messages, error) in
+                if let error = error {
+                    // Log details of the failure
+                    print(error.localizedDescription)
+                } else if let message = messages {
+                    // The find succeeded.
+                    self.chatMessages = message
+                    print("Successfully retrieved \(message.count) posts.")
+                }
+                print ("reload tableView")
+                self.tableView.reloadData();
+                
+            }
+        }
+    }
+    
+    func confirmSession(){
+        getChatMessages();
+        //var messageCurrent = true;
+        if (connectionEstablished == false){
+            let countOfMessages = self.chatMessages.count;
+            listeningCount = 0;
+            
+            if (listeningCount >= listeningCountMax){
+                print("Max Ack Listening Atempts Reached - Handshake Aborted")
+                isAtemptingHandshake = false;
+                userFound = false;
+                isAtemptingAck = false;
+                listeningForUsers = false;
+                AckLevel = 0;
+            }
+            listeningCount = listeningCount + 1;
+            
+            for index in 0..<countOfMessages {
+                // gets a single message
+                let chatMessage = self.chatMessages[index];
+                let usr = (chatMessage["user"] as? PFUser)!.username;
+                let msg = (chatMessage["text"] as? String)!;
+                // Find latest message
+                if (usr == self.userToMatchMake && msg == "ConfirmSession"){
+                    connectionEstablished = true;
+                    print ("Connection Established");
+                }
+            }
+            
+        }
+        else{
+            // CONNECTION ESTABLISHED
+            
+            
+        }
+    }
+    
+    @objc func timedFunc() {
+        if (AckLevel < 4){
+            if (isAtemptingHandshake == false){
+                getMatchMsg();
+                
+                // LOGIC FOR LISTENING SECTION
+                if (listeningForUsers == true){
+                    listenForMatch()
+                    //LOGIC FOR LISTENING SECTION
+                }
+            }
+        }
+        else {
+            
+        }
+    }
+    
+    func setSessionName() {
+        let myUsername: String = PFUser.current()!.username!;
+        let theirUsername: String = userToMatchMake;
         
-        //return returnFlag;
+        if (myUsername > theirUsername){
+            SessionName = "SES:(\(myUsername)-\(theirUsername))"
+        }
+    }
+    
+    func LookForAck(){
+        print("ListenForAck")
+        // Check if is newest message
+        //var messageCurrent = true;
+        let countOfMessages = self.chatMessages.count;
+        // Get number for latest message
+        var mostRecentMsg: Int = 0;
+        
+        for index in 0..<countOfMessages {
+            // gets a single message
+            let chatMessage = self.chatMessages[index];
+            let curr = (chatMessage["current"] as? Int)!;
+            let usr = (chatMessage["user"] as? PFUser)!.username;
+            // Find latest message
+            if (usr == self.userToMatchMake && curr > mostRecentMsg){
+                mostRecentMsg = curr;
+                print ("Most recent message found is: \(curr)");
+            }
+        }
+        
+        // Find latest message and see if Ack
+        for index in 1..<countOfMessages {
+            // gets a single message
+            let chatMessage = self.chatMessages[index];
+            let curr = (chatMessage["current"] as? Int)!;
+            let usr = (chatMessage["user"] as? PFUser)!.username;
+            let msg = (chatMessage["text"] as? String)!;
+            
+            // Finds most recent message based on work above
+            if (usr == self.userToMatchMake && curr == mostRecentMsg){
+                print("Looking for: FirstAck:\(String(describing: PFUser.current()?.username))")
+                if (msg == "FirstAck:\(String(describing: PFUser.current()?.username))"){
+                    print ("First Ack Found!")
+                    AckLevel = 2;
+                }
+                else if(msg == "SecondAck:\(String(describing: PFUser.current()?.username))"){
+                    print ("Second Ack Found!")
+                    AckLevel = 3;
+                }
+                else if (msg == "FinalAck:\(String(describing: PFUser.current()?.username))"){
+                    print ("Final Ack Found!")
+                    setSessionName();
+                    AckLevel = 4;
+                }
+                else {
+                    print ("REJECT: No Ack Found!")
+                    AckLevel = 0;
+                }
+            }
         }
     }
     
@@ -134,20 +301,22 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func startHandshake(){
         print("Start Handshake")
         // START HANDSHAKE MECHANISMS
-        while(userAck == false){
+        //while(userAck == false){
         if (self.anyUserOpen() == true){
             if (self.isUserOpen() == true){
                 self.startAcknowledgement()
             }
         }
         // END HANDSHAKE MECHANISMS
-        }
+        //}
     }
     
     
     func startAcknowledgement(){
         print ("Start ACK")
-        
+        isAtemptingAck = true;
+        //userAck = true;
+        listeningCount = 0;
     }
     
     
@@ -218,15 +387,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         return false;
     }
- 
+    
     
     //---------- Old Chat Stuff ----------//
     
     // Gets Chat Messages
     func getChatMessages(){
-        let query = PFQuery(className:"Messages")
+        let query = PFQuery(className:"\(SessionName)")
         query.addDescendingOrder("createdAt")
-        query.limit = 20
+        query.limit = 10
         query.includeKey("user")
         
         query.findObjectsInBackground { (messages, error) in
@@ -245,7 +414,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Sends The User's Message
     @IBAction func doSendMessage(_ sender: Any) {
-        let chatMessage = PFObject(className: "Messages");
+        let chatMessage = PFObject(className: "\(SessionName)");
         chatMessage["text"] = chatMessageField.text!
         chatMessage["user"] = PFUser.current();
         chatMessage.saveInBackground { (success, error) in
@@ -260,6 +429,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Allows The User to Logout
     @IBAction func doLogout(_ sender: Any) {
+        print("DELETING SESSION")
+        PFObject.deleteAll(inBackground: chatMessages);
+        
         PFUser.logOutInBackground { (error) in
             if (error != nil) {
                 print("Error, cannot logout: \(String(describing: error))")
