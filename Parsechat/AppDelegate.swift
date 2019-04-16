@@ -21,7 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             configuration.applicationId = "parse-connect"
             configuration.server = "https://parse-connect.herokuapp.com/Parse"
         }))
-        
+        // Logic to keep user logged in
         /*if let currentUser = PFUser.current() {
             print("Welcome back \(currentUser.username!) 😀")
                 // TODO: Load Chat view controller and set as root view controller

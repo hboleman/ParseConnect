@@ -76,7 +76,7 @@ class LoginViewController: UIViewController {
         }
     }
     
-    // EXTRA FUNCTIONS
+    //------------------------------ Extra Functions ------------------------------//
     
     // Logic for Testing if a Text Field is Empty or Not
     func isNotEmpty() -> Bool{
