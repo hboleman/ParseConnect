@@ -1,6 +1,6 @@
-#  *ParseChat*
+#  *ParseConnect*
 
-** ParseChat** is a demo app that uses tumblr APIs to be viewable on a TableView
+** ParseConnect** is a demo app that uses the Parse API to create a random chat communication. This backend could be used for other project with the parse API.
 
 Submitted by: **Hunter Boleman**
 
