@@ -189,6 +189,7 @@
                     <connections>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
                         <outlet property="matchMakeOut" destination="pb6-gg-ptw" id="KSS-MK-iEK"/>
+                        <outlet property="navBarOut" destination="ocN-em-cmY" id="I7e-YJ-Fgo"/>
                         <outlet property="tableView" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
                         <segue destination="BYZ-38-t0r" kind="showDetail" identifier="LogoutSeg" id="QcH-p3-rTU"/>
                     </connections>

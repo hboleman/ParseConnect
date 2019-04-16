@@ -15,6 +15,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     @IBOutlet weak var chatMessageField: UITextField!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var matchMakeOut: UIBarButtonItem!
+    @IBOutlet weak var navBarOut: UINavigationItem!
     
     
     // Master Message Object
@@ -25,7 +26,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var currentMatchMake: Int = 0;
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
-    var listeningCountMax: Int = 3;
+    var listeningCountMax: Int = 1000;
     var isAtemptingHandshake: Bool = false;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
@@ -42,13 +43,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         tableView.estimatedRowHeight = 50
         print ("reload tableView")
         self.tableView.reloadData();
+        
+        navBarOut.title = PFUser.current()?.username;
     }
     
     @IBAction func matchMake(_ sender: Any) {
         print("In MatchMake")
         resetVals();
         matchMakeOut.isEnabled = false;
-        matchMakeOut.title = "..."
+        matchMakeOut.title = "Waiting"
         matchMakeOut.tintColor = UIColor.gray;
         
         // Sets getChatMessage to retrieve messages every 5 seconds
@@ -58,9 +61,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         startMatchMaking();
         
-        matchMakeOut.isEnabled = true;
-        matchMakeOut.title = "Match Make"
-        matchMakeOut.tintColor = UIColor.blue;
+        //matchMakeOut.isEnabled = true;
+        //matchMakeOut.title = "Match Make"
+        //matchMakeOut.tintColor = UIColor.blue;
     }
     
     
@@ -87,7 +90,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         userFound = false;
         StatusOpen();
         ListenForUsers();
-        
     }
     
     //Set Match Status to Open
@@ -98,6 +100,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         chatMessage["text"] = "STATUS:OPEN"
         chatMessage["user"] = PFUser.current();
         chatMessage["current"] = currentMatchMake;
+        chatMessage["type"] = "STATUS";
         currentMatchMake = currentMatchMake + 1;
         
         chatMessage.saveInBackground { (success, error) in
@@ -111,22 +114,27 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func SendAck(){
-        let chatMessage = PFObject(className: "Ack");
+        let chatMessage = PFObject(className: "MatchMake");
         //chatMessageField.text = "STATUS OPEN";
+        
         if (AckLevel <= 0){
             chatMessage["text"] = "FirstAck:\(userToMatchMake)"
-            print("First Ack Set")
+            
+            var test: String = "";
+            test = chatMessage["text"] as! String
+            print("Test: " + test);
         }
         if (AckLevel > 0 && AckLevel <= 2){
             chatMessage["text"] = "SecondAck:\(userToMatchMake)"
-            print("Second Ack Set")
+            print("Send Second Ack Set: \(String(describing: chatMessage["text"]))")
         }
         if (AckLevel == 3){
             chatMessage["text"] = "FinalAck:\(userToMatchMake)"
-            print("Final Ack Set")
+            print("Send Final Ack Set: \(String(describing: chatMessage["text"]))")
         }
         chatMessage["user"] = PFUser.current();
         chatMessage["current"] = currentMatchMake;
+        chatMessage["type"] = "ACK";
         currentMatchMake = currentMatchMake + 1;
         
         chatMessage.saveInBackground { (success, error) in
@@ -142,6 +150,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Listen for Open User
     func ListenForUsers(){
         print("Listening for Users")
+        chatMessageField.text = "Lst for Opn Usr"
         //chatMessageField.text = "LISTENING FOR USER";
         listeningForUsers = true;
     }
@@ -180,15 +189,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func listenForMatch(){
         if (isAtemptingAck == false){
             print("Listening For Match")
+            chatMessageField.text = "Lst for Match"
             // START HANDSHAKE MECHANISMS
             if (timeout()){
                 print("timeout from listen to match")
             }
             else{
-            listeningCount = listeningCount + 1;
-            isAtemptingHandshake = true;
-            self.startHandshake();
-            // END HANDSHAKE MECHANISMS
+                isAtemptingHandshake = true;
+                self.startHandshake();
+                // END HANDSHAKE MECHANISMS
             }
         }
         else if (isAtemptingAck == true){
@@ -196,27 +205,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print("Timeout from Listening for Ack")
             }
             else {
-            
-            print("Getting Acknowledgement Messages")
-            let query = PFQuery(className:"Ack")
-            query.addDescendingOrder("createdAt")
-            query.limit = 10
-            query.includeKey("user")
-            
-            query.findObjectsInBackground { (messages, error) in
-                if let error = error {
-                    // Log details of the failure
-                    print(error.localizedDescription)
-                } else if let message = messages {
-                    // The find succeeded.
-                    self.chatMessages = message
-                    print("Successfully retrieved \(message.count) posts.")
-                }
-                print ("reload tableView")
-                self.tableView.reloadData();
+                // Listen for Acks
+                ListenForAck();
+                    print ("reload tableView - Ack")
+                    self.tableView.reloadData();
+                    
                 
             }
-        }
         }
     }
     
@@ -237,8 +232,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 let chatMessage = self.chatMessages[index];
                 let usr = (chatMessage["user"] as? PFUser)!.username;
                 let msg = (chatMessage["text"] as? String)!;
+                let typ = (chatMessage["type"] as? String)!;
                 // Find latest message
-                if (usr == self.userToMatchMake && msg == "ConfirmSession"){
+                if (usr == self.userToMatchMake && msg == "ConfirmSession" && typ == "ACK"){
                     connectionEstablished = true;
                     print ("Connection Established");
                 }
@@ -288,48 +284,58 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func ListenForAck(){
         print("ListenForAck")
+        chatMessageField.text = "Lst for Ack"
         // Check if is newest message
         //var messageCurrent = true;
         let countOfMessages = self.chatMessages.count;
         // Get number for latest message
-        var mostRecentMsg: Int = 0;
+        //var mostRecentMsg: Int = 0;
         
-        for index in 0..<countOfMessages {
-            // gets a single message
-            let chatMessage = self.chatMessages[index];
-            let curr = (chatMessage["current"] as? Int)!;
-            let usr = (chatMessage["user"] as? PFUser)!.username;
-            // Find latest message
-            if (usr == self.userToMatchMake && curr > mostRecentMsg){
-                mostRecentMsg = curr;
-                print ("Most recent message found is: \(curr)");
-            }
-        }
+//        for index in 0..<countOfMessages {
+//            // gets a single message
+//            let chatMessage = self.chatMessages[index];
+//            let curr = (chatMessage["current"] as? Int)!;
+//            let usr = (chatMessage["user"] as? PFUser)!.username;
+//            let typ = (chatMessage["type"] as? String)!;
+//            // Find latest message
+//            if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "ACK"){
+//                mostRecentMsg = curr;
+//                print ("Most recent message found is: \(curr)");
+//            }
+//        }
         
         // Find latest message and see if Ack
         var flag: Bool = false;
         for index in 1..<countOfMessages {
             // gets a single message
             let chatMessage = self.chatMessages[index];
-            let curr = (chatMessage["current"] as? Int)!;
+            //let curr = (chatMessage["current"] as? Int)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
+            let typ = (chatMessage["type"] as? String)!;
+            
+            var currUser: String = "";
+            currUser = PFUser.current()?.username ?? "N/A";
             
             // Finds most recent message based on work above
-            if (usr == self.userToMatchMake){
-                print("Looking for: FirstAck:\(String(describing: PFUser.current()?.username))")
-                if (msg == "FirstAck:\(String(describing: PFUser.current()?.username))"){
+            if (usr == self.userToMatchMake && typ == "ACK"){
+                print("Test Listen Ack")
+                print(("FirstAck:" + currUser));
+                if (msg == ("FirstAck:" + currUser)){
                     print ("First Ack Found!")
+                    chatMessageField.text = "ACK: 1"
                     AckLevel = 2;
                     flag = false;
                 }
-                else if(msg == "SecondAck:\(String(describing: PFUser.current()?.username))"){
+                else if(msg == ("SecondAck:" + currUser)){
                     print ("Second Ack Found!")
+                    chatMessageField.text = "ACK: 2"
                     AckLevel = 3;
                     flag = false;
                 }
-                else if (msg == "FinalAck:\(String(describing: PFUser.current()?.username))"){
+                else if (msg == ("FinalAck:" + currUser)){
                     print ("Final Ack Found!")
+                    chatMessageField.text = "ACK: 3"
                     setSessionName();
                     AckLevel = 4;
                     flag = false;
@@ -341,8 +347,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         if (flag == true){
             print ("REJECT: No Ack Found!")
-            AckLevel = 0;
+            //AckLevel = 0;
         }
+        timeout();
     }
     
     
@@ -378,8 +385,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let chatMessage = self.chatMessages[index];
             let msg = (chatMessage["text"] as? String)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
+            let typ = (chatMessage["type"] as? String)!;
             
-            if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username){
+            if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username && typ == "STATUS"){
                 print ("STATUS IS CONFIRMED OPEN");
                 print ("OPEN: \(String(describing: usr))");
                 self.userToMatchMake = usr!;
@@ -406,8 +414,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let chatMessage = self.chatMessages[index];
             let curr = (chatMessage["current"] as? Int)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
+            let typ = (chatMessage["type"] as? String)!;
             // Find latest message
-            if (usr == self.userToMatchMake && curr > mostRecentMsg){
+            if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "STATUS"){
                 mostRecentMsg = curr;
                 print ("Most recent message found is: \(curr)");
             }
@@ -420,9 +429,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let curr = (chatMessage["current"] as? Int)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
+            let typ = (chatMessage["type"] as? String)!;
             
             // Finds most recent message based on work above
-            if (usr == self.userToMatchMake && curr == mostRecentMsg){
+            if (usr == self.userToMatchMake && curr == mostRecentMsg && typ == "STATUS"){
                 if (msg == "STATUS:OPEN"){
                     print ("FOUND: OPEN AND RECENT")
                     return true;
@@ -505,10 +515,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         let chatMessage = chatMessages[indexPath.row];
         // Set text
         cell.messageLable.text = chatMessage["text"] as? String;
+        let curr = (chatMessage["current"] as? Int)!;
         //Set username
         if let user = chatMessage["user"] as? PFUser {
             // User found! update username label with username
-            cell.usernameLabel.text = user.username;
+            cell.usernameLabel.text = (user.username ?? "" + String(curr));
         } else {
             // No user found, set default username
             cell.usernameLabel.text = "🤖"
