@@ -27,12 +27,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
     var listeningCountMax: Int = 5;
-    var isAtemptingHandshake: Bool = false;
+    var AtemptingToFindUser: Bool = false;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
     var SessionName: String = "";
-    var restartMatch: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,6 +49,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     @IBAction func matchMake(_ sender: Any) {
         print("In MatchMake")
+        chatMessageField.text = "In MatchMake"
+        
         resetVals();
         matchMakeOut.isEnabled = false;
         matchMakeOut.title = "Waiting"
@@ -65,23 +66,24 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func resetVals(){
         print("Reset Vals")
+        chatMessageField.text = "Reset Vals"
         userToMatchMake = "";
         userFound = false;
         userAck = false;
         currentMatchMake = 1;
         listeningForUsers = false;
         listeningCount = 0;
-        isAtemptingHandshake = false;
+        AtemptingToFindUser = false;
         isAtemptingAck = false;
         AckLevel = 0;
         connectionEstablished = false;
         SessionName = "";
-        restartMatch = true;
     }
     
     // Start Match Making Process
     func startMatchMaking(){
         print("Start MatchMaking")
+        chatMessageField.text = "Start MatchMaking"
         resetVals();
         setStatusAsOpen();
         listeningForUsers = true;
@@ -90,6 +92,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     //Set Match Status to Open
     func setStatusAsOpen() {
         print("Set Status to Open")
+        chatMessageField.text = "Set Status as Open"
+        
         let chatMessage = PFObject(className: "MatchMake");
         //chatMessageField.text = "STATUS OPEN";
         chatMessage["text"] = "STATUS:OPEN"
@@ -109,6 +113,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func SendAck(){
+        print("In Send Ack")
+        chatMessageField.text = "In Send Ack"
+        
         let chatMessage = PFObject(className: "MatchMake");
         
         if (AckLevel <= 0){
@@ -142,7 +149,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func getMatchParseData(){
-        print("Getting Match Make Messages")
+        print("Get Parse Data")
+        chatMessageField.text = "Get Parse Data"
+        
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
         query.limit = 10
@@ -165,6 +174,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func timeout(){
         if (listeningCount >= listeningCountMax){
             print("TIMED OUT!")
+            chatMessageField.text = "Timed Out!"
             resetVals();
         }
         listeningCount = listeningCount + 1;
@@ -172,6 +182,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func confirmSessionIsActive(){
         print("Inside ConfirmSession")
+        chatMessageField.text = "In Session Conf"
 
         if (connectionEstablished == false){
             let countOfMessages = self.chatMessages.count;
@@ -198,8 +209,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     @objc func timedFunc() {
         print("Inside TimedFunc")
+        chatMessageField.text = "In Timed Func"
+        
         if (AckLevel < 4){
-            if (isAtemptingHandshake == false){
+            if (AtemptingToFindUser == false){
                 getMatchParseData();
 
                 if (listeningForUsers == true){
@@ -220,7 +233,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func setCustomSessionName() {
-        print("Inside SetSessionName")
+        print("SetSessionName")
+        chatMessageField.text = "Set Session Name"
+        
         let myUsername: String = PFUser.current()!.username!;
         let theirUsername: String = userToMatchMake;
         
@@ -232,8 +247,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func ListenForAck(){
         print("ListenForAck")
         chatMessageField.text = "Lst for Ack"
+        
         // Check if is newest message
-        //var messageCurrent = true;
         let countOfMessages = self.chatMessages.count;
         
         // Find latest message and see if Ack
@@ -284,11 +299,12 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func findPotentialUser(){
-        isAtemptingHandshake = true;
-        print("Start Handshake")
-        // START HANDSHAKE MECHANISMS
+        print("Atempting to Find User")
+        chatMessageField.text = "FindPotentialUsers"
+        
+        AtemptingToFindUser = true;
         if (self.anyUserOpen() == true){
-            if (self.isUserOpen() == true){
+            if (self.isUserReallyOpen() == true){
                 isAtemptingAck = true
                 listeningCount = 0;
             }
@@ -296,7 +312,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func anyUserOpen() -> Bool {
-        print("Any Users Open?")
+        print("Any Users Open")
+        chatMessageField.text = "Finding Any Open Users"
         // Looking for open
         let countOfMessages = self.chatMessages.count;
         
@@ -319,10 +336,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     // Checks latest message of a given user and sees if that one says open or not.
-    func isUserOpen () -> Bool{
-        print("Is User Open?")
-        // Check if is newest message
-        //var messageCurrent = true;
+    func isUserReallyOpen () -> Bool{
+        print("Is User Really Open")
+        chatMessageField.text = "Is User Really Open?"
+
         let countOfMessages = self.chatMessages.count;
         // Get number for latest message
         var mostRecentMsg: Int = 0;
