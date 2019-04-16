@@ -179,9 +179,16 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="iXx-Z8-0LV"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Chat" id="ocN-em-cmY"/>
+                    <navigationItem key="navigationItem" title="Chat" id="ocN-em-cmY">
+                        <barButtonItem key="leftBarButtonItem" title="Match Make" id="pb6-gg-ptw">
+                            <connections>
+                                <action selector="matchMake:" destination="vaw-0G-7ce" id="3ho-vy-0h0"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="chatMessageField" destination="bWb-DX-Crl" id="L7Q-Mu-Mfh"/>
+                        <outlet property="matchMakeOut" destination="pb6-gg-ptw" id="KSS-MK-iEK"/>
                         <outlet property="tableView" destination="1zd-wP-MIe" id="Or1-zh-hI5"/>
                         <segue destination="BYZ-38-t0r" kind="showDetail" identifier="LogoutSeg" id="QcH-p3-rTU"/>
                     </connections>

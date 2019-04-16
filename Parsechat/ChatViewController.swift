@@ -14,6 +14,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Outlets
     @IBOutlet weak var chatMessageField: UITextField!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var matchMakeOut: UIBarButtonItem!
+    
     
     // Master Message Object
     var chatMessages: [PFObject] = [];
@@ -44,12 +46,25 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         timedFunc();
         print ("reload tableView")
         self.tableView.reloadData();
-        
-        // Match Making
-        startMatchMaking();
     }
     
+    @IBAction func matchMake(_ sender: Any) {
+        print("In MatchMake")
+        resetVals();
+        matchMakeOut.isEnabled = false;
+        matchMakeOut.title = "Working..."
+        matchMakeOut.tintColor = UIColor.gray;
+        
+        startMatchMaking();
+        
+        matchMakeOut.isEnabled = true;
+        matchMakeOut.title = "Match Make"
+        matchMakeOut.tintColor = UIColor.blue;
+    }
+    
+    
     func resetVals(){
+        print("Reset Vals")
         userToMatchMake = "";
         userFound = false;
         userAck = false;
@@ -96,17 +111,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func SendAck(){
-        print("Sent Ack")
         let chatMessage = PFObject(className: "Ack");
         //chatMessageField.text = "STATUS OPEN";
         if (AckLevel == 0){
             chatMessage["text"] = "FirstAck:\(userToMatchMake)"
+            print("First Ack Set")
         }
         if (AckLevel == 2){
             chatMessage["text"] = "SecondAck:\(userToMatchMake)"
+            print("Second Ack Set")
         }
         if (AckLevel == 3){
             chatMessage["text"] = "FinalAck:\(userToMatchMake)"
+            print("Final Ack Set")
         }
         chatMessage["user"] = PFUser.current();
         chatMessage["current"] = currentMatchMake;
@@ -152,6 +169,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func listenForMatch(){
         if (isAtemptingAck == false){
+            print("Listening For Match")
             // START HANDSHAKE MECHANISMS
             if (listeningCount >= listeningCountMax){
                 print("Max Listening Atempts Reached - Handshake Aborted")
@@ -192,6 +210,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func confirmSession(){
+        print("Inside ConfirmSession")
         getChatMessages();
         //var messageCurrent = true;
         if (connectionEstablished == false){
@@ -225,6 +244,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     @objc func timedFunc() {
+        print("Inside TimedFunc")
         if (AckLevel < 4){
             if (isAtemptingHandshake == false){
                 getMatchMsg();
@@ -237,11 +257,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
         }
         else {
-            
+            // If Confirmed
+            getChatMessages();
         }
     }
     
     func setSessionName() {
+        print("Inside SetSessionName")
         let myUsername: String = PFUser.current()!.username!;
         let theirUsername: String = userToMatchMake;
         
@@ -398,6 +420,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Gets Chat Messages
     func getChatMessages(){
+        print("Inside getChatMessages")
         let query = PFQuery(className:"\(SessionName)")
         query.addDescendingOrder("createdAt")
         query.limit = 10
@@ -419,6 +442,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Sends The User's Message
     @IBAction func doSendMessage(_ sender: Any) {
+        print("Inside doSendMessage")
         let chatMessage = PFObject(className: "\(SessionName)");
         chatMessage["text"] = chatMessageField.text!
         chatMessage["user"] = PFUser.current();
