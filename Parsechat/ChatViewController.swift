@@ -26,12 +26,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var currentMatchMake: Int = 0;
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
-    var listeningCountMax: Int = 1000;
+    var listeningCountMax: Int = 5;
     var isAtemptingHandshake: Bool = false;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
     var SessionName: String = "";
+    var restartMatch: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,12 +59,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
         // runs getChatMessages for the first time
         timedFunc();
-        
         startMatchMaking();
-        
-        //matchMakeOut.isEnabled = true;
-        //matchMakeOut.title = "Match Make"
-        //matchMakeOut.tintColor = UIColor.blue;
     }
     
     
@@ -80,20 +76,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         AckLevel = 0;
         connectionEstablished = false;
         SessionName = "";
+        restartMatch = true;
     }
     
     // Start Match Making Process
     func startMatchMaking(){
-        // Set Status Open
         print("Start MatchMaking")
-        userAck = false;
-        userFound = false;
-        StatusOpen();
-        ListenForUsers();
+        resetVals();
+        setStatusAsOpen();
+        listeningForUsers = true;
     }
     
     //Set Match Status to Open
-    func StatusOpen() {
+    func setStatusAsOpen() {
         print("Set Status to Open")
         let chatMessage = PFObject(className: "MatchMake");
         //chatMessageField.text = "STATUS OPEN";
@@ -115,14 +110,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func SendAck(){
         let chatMessage = PFObject(className: "MatchMake");
-        //chatMessageField.text = "STATUS OPEN";
         
         if (AckLevel <= 0){
             chatMessage["text"] = "FirstAck:\(userToMatchMake)"
             
             var test: String = "";
             test = chatMessage["text"] as! String
-            print("Test: " + test);
+            print("Send Ack Test: " + test);
         }
         if (AckLevel > 0 && AckLevel <= 2){
             chatMessage["text"] = "SecondAck:\(userToMatchMake)"
@@ -147,15 +141,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
     }
     
-    // Listen for Open User
-    func ListenForUsers(){
-        print("Listening for Users")
-        chatMessageField.text = "Lst for Opn Usr"
-        //chatMessageField.text = "LISTENING FOR USER";
-        listeningForUsers = true;
-    }
-    
-    func getMatchMsg(){
+    func getMatchParseData(){
         print("Getting Match Make Messages")
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
@@ -176,56 +162,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
     }
     
-    func timeout() -> Bool {
+    func timeout(){
         if (listeningCount >= listeningCountMax){
-            print("TIMED OUT - Vals Reset")
+            print("TIMED OUT!")
             resetVals();
-            return true;
         }
         listeningCount = listeningCount + 1;
-        return false
     }
     
-    func listenForMatch(){
-        if (isAtemptingAck == false){
-            print("Listening For Match")
-            chatMessageField.text = "Lst for Match"
-            // START HANDSHAKE MECHANISMS
-            if (timeout()){
-                print("timeout from listen to match")
-            }
-            else{
-                isAtemptingHandshake = true;
-                self.startHandshake();
-                // END HANDSHAKE MECHANISMS
-            }
-        }
-        else if (isAtemptingAck == true){
-            if (listeningCount >= listeningCountMax){
-                print("Timeout from Listening for Ack")
-            }
-            else {
-                // Listen for Acks
-                ListenForAck();
-                    print ("reload tableView - Ack")
-                    self.tableView.reloadData();
-                    
-                
-            }
-        }
-    }
-    
-    func confirmSession(){
+    func confirmSessionIsActive(){
         print("Inside ConfirmSession")
-        getChatMessages();
-        //var messageCurrent = true;
+
         if (connectionEstablished == false){
             let countOfMessages = self.chatMessages.count;
-            
-            if (timeout()){
-                print("Timeout from Confirm Session")
-            }
-            listeningCount = listeningCount + 1;
             
             for index in 0..<countOfMessages {
                 // gets a single message
@@ -239,7 +188,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                     print ("Connection Established");
                 }
             }
-            
         }
         else{
             // CONNECTION ESTABLISHED
@@ -252,27 +200,26 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         print("Inside TimedFunc")
         if (AckLevel < 4){
             if (isAtemptingHandshake == false){
-                getMatchMsg();
-                
-                // LOGIC FOR LISTENING SECTION
+                getMatchParseData();
+
                 if (listeningForUsers == true){
-                    listenForMatch()
-                    //LOGIC FOR LISTENING SECTION
+                    findPotentialUser()
+                    timeout()
                 }
             }
             else if (isAtemptingAck == true){
                 // Trying to Ack
                 SendAck();
                 ListenForAck();
+                timeout()
             }
         }
         else {
-            // If Trying to Ack
-            getChatMessages();
+            
         }
     }
     
-    func setSessionName() {
+    func setCustomSessionName() {
         print("Inside SetSessionName")
         let myUsername: String = PFUser.current()!.username!;
         let theirUsername: String = userToMatchMake;
@@ -288,21 +235,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         // Check if is newest message
         //var messageCurrent = true;
         let countOfMessages = self.chatMessages.count;
-        // Get number for latest message
-        //var mostRecentMsg: Int = 0;
-        
-//        for index in 0..<countOfMessages {
-//            // gets a single message
-//            let chatMessage = self.chatMessages[index];
-//            let curr = (chatMessage["current"] as? Int)!;
-//            let usr = (chatMessage["user"] as? PFUser)!.username;
-//            let typ = (chatMessage["type"] as? String)!;
-//            // Find latest message
-//            if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "ACK"){
-//                mostRecentMsg = curr;
-//                print ("Most recent message found is: \(curr)");
-//            }
-//        }
         
         // Find latest message and see if Ack
         var flag: Bool = false;
@@ -321,10 +253,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             if (usr == self.userToMatchMake && typ == "ACK"){
                 print("Test Listen Ack")
                 print(("FirstAck:" + currUser));
-                if (msg == ("FirstAck:" + currUser)){
-                    print ("First Ack Found!")
-                    chatMessageField.text = "ACK: 1"
-                    AckLevel = 2;
+                if (msg == ("FinalAck:" + currUser)){
+                    print ("Final Ack Found!")
+                    chatMessageField.text = "ACK: 3"
+                    setCustomSessionName();
+                    AckLevel = 4;
                     flag = false;
                 }
                 else if(msg == ("SecondAck:" + currUser)){
@@ -333,11 +266,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                     AckLevel = 3;
                     flag = false;
                 }
-                else if (msg == ("FinalAck:" + currUser)){
-                    print ("Final Ack Found!")
-                    chatMessageField.text = "ACK: 3"
-                    setSessionName();
-                    AckLevel = 4;
+                else if (msg == ("FirstAck:" + currUser)){
+                    print ("First Ack Found!")
+                    chatMessageField.text = "ACK: 1"
+                    AckLevel = 2;
                     flag = false;
                 }
                 else {
@@ -349,31 +281,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             print ("REJECT: No Ack Found!")
             //AckLevel = 0;
         }
-        timeout();
     }
     
-    
-    func startHandshake(){
+    func findPotentialUser(){
+        isAtemptingHandshake = true;
         print("Start Handshake")
         // START HANDSHAKE MECHANISMS
-        //while(userAck == false){
         if (self.anyUserOpen() == true){
             if (self.isUserOpen() == true){
-                self.startAcknowledgement()
+                isAtemptingAck = true
+                listeningCount = 0;
             }
         }
-        // END HANDSHAKE MECHANISMS
-        //}
     }
-    
-    
-    func startAcknowledgement(){
-        print ("Start ACK")
-        isAtemptingAck = true;
-        //userAck = true;
-        listeningCount = 0;
-    }
-    
     
     func anyUserOpen() -> Bool {
         print("Any Users Open?")
@@ -397,8 +317,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         return false;
     }
-    
-    
     
     // Checks latest message of a given user and sees if that one says open or not.
     func isUserOpen () -> Bool{
