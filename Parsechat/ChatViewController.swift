@@ -26,12 +26,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var currentMatchMake: Int = 0;
     var listeningForUsers: Bool = false;
     var listeningCount: Int = 0;
-    var listeningCountMax: Int = 5;
+    var listeningCountMax: Int = 20;
     var AtemptingToFindUser: Bool = false;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
     var SessionName: String = "";
+    var freezeData: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -78,6 +79,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         AckLevel = 0;
         connectionEstablished = false;
         SessionName = "";
+        freezeData = false;
     }
     
     // Start Match Making Process
@@ -171,6 +173,29 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
     }
     
+    func getSessionParseData(){
+        print("Get Session Parse Data")
+        chatMessageField.text = "Get Session Parse Data"
+        
+        let query = PFQuery(className:SessionName)
+        query.addDescendingOrder("createdAt")
+        query.limit = 10
+        query.includeKey("user")
+        
+        query.findObjectsInBackground { (messages, error) in
+            if let error = error {
+                // Log details of the failure
+                print(error.localizedDescription)
+            } else if let message = messages {
+                // The find succeeded.
+                self.chatMessages = message
+                print("Successfully retrieved \(message.count) posts.")
+            }
+            print ("reload tableView")
+            self.tableView.reloadData();
+        }
+    }
+    
     func timeout(){
         if (listeningCount >= listeningCountMax){
             print("TIMED OUT!")
@@ -183,7 +208,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func confirmSessionIsActive(){
         print("Inside ConfirmSession")
         chatMessageField.text = "In Session Conf"
-
+        
         if (connectionEstablished == false){
             let countOfMessages = self.chatMessages.count;
             
@@ -197,6 +222,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 if (usr == self.userToMatchMake && msg == "ConfirmSession" && typ == "ACK"){
                     connectionEstablished = true;
                     print ("Connection Established");
+                    chatMessageField.text = "Connection Established";
                 }
             }
         }
@@ -210,25 +236,34 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     @objc func timedFunc() {
         print("Inside TimedFunc")
         chatMessageField.text = "In Timed Func"
-        
-        if (AckLevel < 4){
-            if (AtemptingToFindUser == false){
-                getMatchParseData();
-
-                if (listeningForUsers == true){
-                    findPotentialUser()
-                    timeout()
-                }
+        if (freezeData == false){
+            if(connectionEstablished == false){
+             getMatchParseData();
             }
-            else if (isAtemptingAck == true){
-                // Trying to Ack
-                SendAck();
-                ListenForAck();
-                timeout()
+            else{
+                getSessionParseData()
             }
+            freezeData = true;
         }
-        else {
-            
+        else if (connectionEstablished == true){
+            chatMessageField.isEnabled = true;
+            freezeData = true;
+        }
+        else if (AckLevel >= 4){
+         confirmSessionIsActive()
+        }
+        else if (isAtemptingAck == true){
+            // Trying to Ack
+            SendAck();
+            ListenForAck();
+            timeout()
+            freezeData = false;
+        }
+        
+        else if (listeningForUsers == true){
+            findPotentialUser()
+            timeout()
+            freezeData = false;
         }
     }
     
@@ -246,7 +281,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func ListenForAck(){
         print("ListenForAck")
-        chatMessageField.text = "Lst for Ack"
+        chatMessageField.text = "List for Ack"
         
         // Check if is newest message
         let countOfMessages = self.chatMessages.count;
@@ -339,7 +374,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func isUserReallyOpen () -> Bool{
         print("Is User Really Open")
         chatMessageField.text = "Is User Really Open?"
-
+        
         let countOfMessages = self.chatMessages.count;
         // Get number for latest message
         var mostRecentMsg: Int = 0;
