@@ -24,12 +24,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Global Variables
     var chatMessages: [PFObject] = [];
-    var garbage: [PFObject] = [];
     var userToMatchMake: String = "";
     var postNumber: Int = 0;
     var listeningForUsers: Bool = false;
     var timoutCounter: Int = 0;
-    var timeoutMax: Int = 20;
+    var timeoutMax: Int = 10;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
@@ -38,6 +37,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var queryLimit: Int = 10;
     var connectionsToSkip: Int = 0;
     var connectionCount: Int = 0;
+    var reset: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,7 +61,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Resets all values
     func resetVals(){
         print("Reset Vals")
-        //chatMessageField.text = "Reset Vals"
+        
+        matchMakeOut.isEnabled = true;
+        matchMakeOut.title = "Match Make"
+        matchMakeOut.tintColor = UIColor.blue;
+        
         userToMatchMake = "";
         listeningForUsers = false;
         isAtemptingAck = false;
@@ -78,17 +82,17 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removes garbage
     func garbageRemoval(){
-//        print("In Garbage")
-//        //while(chatMessages.count > 10){
-//
-//        PFObject.deleteAll(inBackground: chatMessages) { (sucess, error) in
-//            if (sucess == true){
-//                print("Delete: TRUE")
-//            }
-//            else {
-//                print("Delete: FALSE")
-//            }
-//        }
+        //        print("In Garbage")
+        //        //while(chatMessages.count > 10){
+        //
+        //        PFObject.deleteAll(inBackground: chatMessages) { (sucess, error) in
+        //            if (sucess == true){
+        //                print("Delete: TRUE")
+        //            }
+        //            else {
+        //                print("Delete: FALSE")
+        //            }
+        //        }
     }
     
     // Does a timeout if connection not reached
@@ -96,6 +100,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         if (timoutCounter >= timeoutMax){
             print("TIMED OUT!")
             chatMessageField.text = "Timed Out!"
+            reset = true;
             resetVals();
         }
         timoutCounter = timoutCounter + 1;
@@ -105,46 +110,59 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // The logic that will run on a timer
     @objc func timedFunc() {
-        if (connectionCount >= connectionsToSkip){
-            connectionCount = 0;
-            print("Timed Func Ran")
-            
-            if (freezeData == false){
-                if(connectionEstablished == false && AckLevel < 4){
-                    getMatchParseData();
-                }
-                else if(connectionEstablished == false && AckLevel >= 4){
-                    getConfirmParseData();
-                }
-                else{
-                    getSessionParseData();
-                }
-                freezeData = true;
-            }
-            else if (connectionEstablished == true){
-                ActiveConnection();
-                freezeData = false;
-            }
-            else if (AckLevel >= 4){
-                checkIfSessionActive()
-                freezeData = false;
-            }
-            else if (isAtemptingAck == true){
-                // Trying to Ack
-                SendAck();
-                ListenForAck();
-                timeout()
-                freezeData = false;
-            }
+        if(reset == false){
+            if (connectionCount >= connectionsToSkip){
+                connectionCount = 0;
+                matchMakeOut.isEnabled = false;
+                matchMakeOut.title = "Waiting"
+                matchMakeOut.tintColor = UIColor.gray;
+                print("Timed Func Ran")
                 
-            else if (listeningForUsers == true){
-                findPotentialUser()
-                timeout()
-                freezeData = false;
+                if (freezeData == false){
+                    if(connectionEstablished == false && AckLevel < 4){
+                        getMatchParseData();
+                    }
+                    else if(connectionEstablished == false && AckLevel >= 4){
+                        getConfirmParseData();
+                    }
+                    else{
+                        getSessionParseData();
+                    }
+                    freezeData = true;
+                }
+                else if (connectionEstablished == true){
+                    ActiveConnection();
+                    freezeData = false;
+                }
+                else if (AckLevel >= 4){
+                    checkIfSessionActive()
+                    freezeData = false;
+                }
+                else if (isAtemptingAck == true){
+                    // Trying to Ack
+                    SendAck();
+                    ListenForAck();
+                    timeout()
+                    freezeData = false;
+                }
+                    
+                else if (listeningForUsers == true){
+                    findPotentialUser()
+                    timeout()
+                    freezeData = false;
+                }
+            }
+            else{
+                connectionCount = connectionCount + 1;
             }
         }
         else{
-            connectionCount = connectionCount + 1;
+            if(connectionCount >= connectionsToSkip){
+            resetVals()
+            }
+            else{
+                connectionCount = connectionCount + 1;
+            }
         }
     }
     
@@ -153,12 +171,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Button that does Match Making Preperation
     @IBAction func matchMake(_ sender: Any) {
         print("In MatchMake")
-        chatMessageField.text = "In MatchMake"
         
-        resetVals();
+        connectionCount = 0
+        timoutCounter = 0
+        reset = false;
         matchMakeOut.isEnabled = false;
         matchMakeOut.title = "Waiting"
-        matchMakeOut.tintColor = UIColor.blue;
+        matchMakeOut.tintColor = UIColor.gray;
         
         progViewOut.setProgress(0, animated: false);
         obstructorOut.alpha = 1;
@@ -378,7 +397,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     func getMatchParseData(){
         print("Get Parse Data")
         //chatMessageField.text = "Get Parse Data"
-        matchMakeOut.tintColor = UIColor.green;
+        matchMakeOut.tintColor = UIColor.black;
         
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
@@ -393,7 +412,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 // The find succeeded.
                 self.chatMessages = message
                 print("Successfully retrieved \(message.count) posts.")
-                self.matchMakeOut.tintColor = UIColor.blue;
+                self.matchMakeOut.tintColor = UIColor.gray;
             }
             print ("reload tableView")
             self.tableView.reloadData();
@@ -402,7 +421,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Retrieves Confirmation Data
     func getConfirmParseData(){
-        self.matchMakeOut.tintColor = UIColor.green;
+        self.matchMakeOut.tintColor = UIColor.black;
         print("Get Confirmation Parse Data")
         
         let query = PFQuery(className:"Confirm")
@@ -421,13 +440,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
             print ("reload tableView")
             self.tableView.reloadData();
-            self.matchMakeOut.tintColor = UIColor.blue;
+            self.matchMakeOut.tintColor = UIColor.gray;
         }
     }
     
     // Retrieves Session Data
     func getSessionParseData(){
-        self.matchMakeOut.tintColor = UIColor.green;
+        self.matchMakeOut.tintColor = UIColor.black;
         print("Get Session Parse Data")
         
         let query = PFQuery(className:"Session")
@@ -446,7 +465,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
             print ("reload tableView")
             self.tableView.reloadData();
-            self.matchMakeOut.tintColor = UIColor.blue;
+            self.matchMakeOut.tintColor = UIColor.gray;
         }
     }
     
