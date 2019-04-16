@@ -21,13 +21,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Master Message Object
     var chatMessages: [PFObject] = [];
     var userToMatchMake: String = "";
-    var userFound: Bool = false;
-    var userAck: Bool = false;
-    var currentMatchMake: Int = 0;
+    var postNumber: Int = 0;
     var listeningForUsers: Bool = false;
-    var listeningCount: Int = 0;
-    var listeningCountMax: Int = 20;
-    var AtemptingToFindUser: Bool = false;
+    var timoutCounter: Int = 0;
+    var timeoutMax: Int = 20;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
@@ -55,7 +52,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         resetVals();
         matchMakeOut.isEnabled = false;
         matchMakeOut.title = "Waiting"
-        matchMakeOut.tintColor = UIColor.gray;
+        matchMakeOut.tintColor = UIColor.blue;
         
         // Sets getChatMessage to retrieve messages every 5 seconds
         Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
@@ -67,14 +64,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func resetVals(){
         print("Reset Vals")
-        chatMessageField.text = "Reset Vals"
+        //chatMessageField.text = "Reset Vals"
         userToMatchMake = "";
-        userFound = false;
-        userAck = false;
-        currentMatchMake = 1;
         listeningForUsers = false;
-        listeningCount = 0;
-        AtemptingToFindUser = false;
         isAtemptingAck = false;
         AckLevel = 0;
         connectionEstablished = false;
@@ -85,9 +77,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Start Match Making Process
     func startMatchMaking(){
         print("Start MatchMaking")
-        chatMessageField.text = "Start MatchMaking"
+        //chatMessageField.text = "Start MatchMaking"
         resetVals();
         setStatusAsOpen();
+        getMatchParseData();
         listeningForUsers = true;
     }
     
@@ -100,14 +93,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         //chatMessageField.text = "STATUS OPEN";
         chatMessage["text"] = "STATUS:OPEN"
         chatMessage["user"] = PFUser.current();
-        chatMessage["current"] = currentMatchMake;
+        chatMessage["current"] = postNumber;
         chatMessage["type"] = "STATUS";
-        currentMatchMake = currentMatchMake + 1;
+        postNumber = postNumber + 1;
         
         chatMessage.saveInBackground { (success, error) in
             if success {
                 print("The message was saved!")
-                self.chatMessageField.text = "";
+                //self.chatMessageField.text = "";
             } else if let error = error {
                 print("Problem saving message: \(error.localizedDescription)")
             }
@@ -116,7 +109,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func SendAck(){
         print("In Send Ack")
-        chatMessageField.text = "In Send Ack"
+        //chatMessageField.text = "In Send Ack"
         
         let chatMessage = PFObject(className: "MatchMake");
         
@@ -136,14 +129,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             print("Send Final Ack Set: \(String(describing: chatMessage["text"]))")
         }
         chatMessage["user"] = PFUser.current();
-        chatMessage["current"] = currentMatchMake;
+        chatMessage["current"] = postNumber;
         chatMessage["type"] = "ACK";
-        currentMatchMake = currentMatchMake + 1;
+        postNumber = postNumber + 1;
         
         chatMessage.saveInBackground { (success, error) in
             if success {
                 print("The message was saved!")
-                self.chatMessageField.text = "";
+                //self.chatMessageField.text = "";
             } else if let error = error {
                 print("Problem saving message: \(error.localizedDescription)")
             }
@@ -152,7 +145,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func getMatchParseData(){
         print("Get Parse Data")
-        chatMessageField.text = "Get Parse Data"
+        //chatMessageField.text = "Get Parse Data"
+        matchMakeOut.tintColor = UIColor.green;
         
         let query = PFQuery(className:"MatchMake")
         query.addDescendingOrder("createdAt")
@@ -167,6 +161,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 // The find succeeded.
                 self.chatMessages = message
                 print("Successfully retrieved \(message.count) posts.")
+                self.matchMakeOut.tintColor = UIColor.blue;
             }
             print ("reload tableView")
             self.tableView.reloadData();
@@ -174,8 +169,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func getSessionParseData(){
+        self.matchMakeOut.tintColor = UIColor.green;
         print("Get Session Parse Data")
-        chatMessageField.text = "Get Session Parse Data"
+        //chatMessageField.text = "Get Session Parse Data"
         
         let query = PFQuery(className:SessionName)
         query.addDescendingOrder("createdAt")
@@ -193,21 +189,22 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
             print ("reload tableView")
             self.tableView.reloadData();
+            self.matchMakeOut.tintColor = UIColor.blue;
         }
     }
     
     func timeout(){
-        if (listeningCount >= listeningCountMax){
+        if (timoutCounter >= timeoutMax){
             print("TIMED OUT!")
             chatMessageField.text = "Timed Out!"
             resetVals();
         }
-        listeningCount = listeningCount + 1;
+        timoutCounter = timoutCounter + 1;
     }
     
     func confirmSessionIsActive(){
         print("Inside ConfirmSession")
-        chatMessageField.text = "In Session Conf"
+        chatMessageField.text = "ENTERED SESSION"
         
         if (connectionEstablished == false){
             let countOfMessages = self.chatMessages.count;
@@ -222,7 +219,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 if (usr == self.userToMatchMake && msg == "ConfirmSession" && typ == "ACK"){
                     connectionEstablished = true;
                     print ("Connection Established");
-                    chatMessageField.text = "Connection Established";
+                    //chatMessageField.text = "Connection Established";
                 }
             }
         }
@@ -235,7 +232,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     @objc func timedFunc() {
         print("Inside TimedFunc")
-        chatMessageField.text = "In Timed Func"
+        //chatMessageField.text = "In Timed Func"
         if (freezeData == false){
             if(connectionEstablished == false){
              getMatchParseData();
@@ -269,7 +266,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func setCustomSessionName() {
         print("SetSessionName")
-        chatMessageField.text = "Set Session Name"
+        //chatMessageField.text = "Set Session Name"
         
         let myUsername: String = PFUser.current()!.username!;
         let theirUsername: String = userToMatchMake;
@@ -277,11 +274,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         if (myUsername > theirUsername){
             SessionName = "SES:(\(myUsername)-\(theirUsername))"
         }
+        else if (myUsername < theirUsername){
+            SessionName = "SES:(\(theirUsername)-\(myUsername))"
+        }
     }
     
     func ListenForAck(){
         print("ListenForAck")
-        chatMessageField.text = "List for Ack"
+        //chatMessageField.text = "List for Ack"
         
         // Check if is newest message
         let countOfMessages = self.chatMessages.count;
@@ -301,8 +301,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             
             // Finds most recent message based on work above
             if (usr == self.userToMatchMake && typ == "ACK"){
-                print("Test Listen Ack")
-                print(("FirstAck:" + currUser));
+                print(("Test Listen Ack" + currUser))
                 if (msg == ("FinalAck:" + currUser)){
                     print ("Final Ack Found!")
                     chatMessageField.text = "ACK: 3"
@@ -327,21 +326,20 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 }
             }
         }
-        if (flag == true){
-            print ("REJECT: No Ack Found!")
+        //if (flag == true){
+            //print ("REJECT: No Ack Found!")
             //AckLevel = 0;
-        }
+    //}
     }
     
     func findPotentialUser(){
         print("Atempting to Find User")
-        chatMessageField.text = "FindPotentialUsers"
+        chatMessageField.text = "Finding Potential Users"
         
-        AtemptingToFindUser = true;
         if (self.anyUserOpen() == true){
             if (self.isUserReallyOpen() == true){
                 isAtemptingAck = true
-                listeningCount = 0;
+                timoutCounter = 0;
             }
         }
     }
@@ -363,7 +361,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print ("STATUS IS CONFIRMED OPEN");
                 print ("OPEN: \(String(describing: usr))");
                 self.userToMatchMake = usr!;
-                self.userFound = true;
                 return true;
             }
         }
@@ -450,7 +447,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         chatMessage.saveInBackground { (success, error) in
             if success {
                 print("The message was saved!")
-                self.chatMessageField.text = "";
+                //self.chatMessageField.text = "";
             } else if let error = error {
                 print("Problem saving message: \(error.localizedDescription)")
             }
@@ -479,17 +476,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Sets Table Cell Contents
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Reusable Cell
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell") as! ChatCell;
         // gets a single message
         let chatMessage = chatMessages[indexPath.row];
+        let curr = (chatMessage["current"] as? Int)!;
+        let str = String(curr)
+        
+        // Reusable Cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell") as! ChatCell;
         // Set text
         cell.messageLable.text = chatMessage["text"] as? String;
-        let curr = (chatMessage["current"] as? Int)!;
         //Set username
         if let user = chatMessage["user"] as? PFUser {
             // User found! update username label with username
-            cell.usernameLabel.text = (user.username ?? "" + String(curr));
+            cell.usernameLabel.text = (user.username);
         } else {
             // No user found, set default username
             cell.usernameLabel.text = "🤖"
