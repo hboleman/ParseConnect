@@ -27,17 +27,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var userToMatchMake: String = "";
     var postNumber: Int = 0;
     var listeningForUsers: Bool = false;
-    var timoutCounter: Int = 0;
+    var timeoutCounter: Int = 0;
     var timeoutMax: Int = 10;
     var isAtemptingAck: Bool = false;
     var AckLevel: Int = 0;
     var connectionEstablished: Bool = false;
     var freezeData: Bool = false;
     var activeConnection = false;
-    var queryLimit: Int = 10;
+    var queryLimit: Int = 6;
     var connectionsToSkip: Int = 0;
     var connectionCount: Int = 0;
     var reset: Bool = false;
+    var sendDataDelay: Int = 3;
+    var sendDataCount: Int = 3;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,7 +55,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         navBarOut.title = PFUser.current()?.username;
         
         progViewOut.setProgress(0, animated: false);
-        obstructorOut.alpha = 1;
+        // Set Alpha to Zero for Debug
+        obstructorOut.alpha = 0;
     }
     
     //------------------------------ Utility Functions ------------------------------//
@@ -77,7 +80,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         connectionCount = 0;
         connectionsToSkip = 0;
         progViewOut.setProgress(0, animated: false);
-        obstructorOut.alpha = 1;
+        //obstructorOut.alpha = 1;
+        sendDataCount = 3;
     }
     
     // Removes garbage
@@ -97,13 +101,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Does a timeout if connection not reached
     func timeout(){
-        if (timoutCounter >= timeoutMax){
+        if (timeoutCounter >= timeoutMax){
             print("TIMED OUT!")
             chatMessageField.text = "Timed Out!"
             reset = true;
             resetVals();
         }
-        timoutCounter = timoutCounter + 1;
+        timeoutCounter = timeoutCounter + 1;
     }
     
     //------------------------------ Scheduled Timer Function ------------------------------//
@@ -119,10 +123,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print("Timed Func Ran")
                 
                 if (freezeData == false){
-                    if(connectionEstablished == false && AckLevel < 4){
+                    if(connectionEstablished == false && AckLevel < 2){
                         getMatchParseData();
                     }
-                    else if(connectionEstablished == false && AckLevel >= 4){
+                    else if(connectionEstablished == false && AckLevel >= 2){
                         getConfirmParseData();
                     }
                     else{
@@ -134,8 +138,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                     ActiveConnection();
                     freezeData = false;
                 }
-                else if (AckLevel >= 4){
+                else if (AckLevel >= 2){
                     checkIfSessionActive()
+                    timeout();
                     freezeData = false;
                 }
                 else if (isAtemptingAck == true){
@@ -158,7 +163,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         else{
             if(connectionCount >= connectionsToSkip){
-            resetVals()
+                resetVals()
             }
             else{
                 connectionCount = connectionCount + 1;
@@ -173,14 +178,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         print("In MatchMake")
         
         connectionCount = 0
-        timoutCounter = 0
+        timeoutCounter = 0
         reset = false;
         matchMakeOut.isEnabled = false;
         matchMakeOut.title = "Waiting"
         matchMakeOut.tintColor = UIColor.gray;
         
         progViewOut.setProgress(0, animated: false);
-        obstructorOut.alpha = 1;
+        //obstructorOut.alpha = 1;
         // Sets getChatMessage to retrieve messages every 5 seconds
         Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
         // runs getChatMessages for the first time
@@ -204,25 +209,63 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     //Set Match Status to Open
     func setStatusAsOpen() {
-        progViewOut.setProgress(0.1, animated: true);
-        print("Set Status to Open")
-        chatMessageField.text = "Set Status as Open"
-        
-        let chatMessage = PFObject(className: "MatchMake");
-        //chatMessageField.text = "STATUS OPEN";
-        chatMessage["text"] = "STATUS:OPEN"
-        chatMessage["user"] = PFUser.current();
-        chatMessage["current"] = postNumber;
-        chatMessage["type"] = "STATUS";
-        postNumber = postNumber + 1;
-        
-        chatMessage.saveInBackground { (success, error) in
-            if success {
-                print("The message was saved!")
-                //self.chatMessageField.text = "";
-            } else if let error = error {
-                print("Problem saving message: \(error.localizedDescription)")
+        if (sendDataCount >= sendDataDelay){
+            progViewOut.setProgress(0.1, animated: true);
+            print("Set Status to Open")
+            chatMessageField.text = "Set Status as Open"
+            
+            let chatMessage = PFObject(className: "MatchMake");
+            //chatMessageField.text = "STATUS OPEN";
+            chatMessage["text"] = "STATUS:OPEN"
+            chatMessage["user"] = PFUser.current();
+            chatMessage["current"] = postNumber;
+            chatMessage["type"] = "STATUS";
+            postNumber = postNumber + 1;
+            
+            chatMessage.saveInBackground { (success, error) in
+                if success {
+                    print("The message was saved!")
+                    self.sendDataCount = 0;
+                    //self.chatMessageField.text = "";
+                } else if let error = error {
+                    print("Problem saving message: \(error.localizedDescription)")
+                }
             }
+        }
+        else {
+            sendDataCount = sendDataCount + 1;
+            timeoutCounter = 0;
+        }
+    }
+    
+    //Set Match Status to Closed
+    func setStatusAsClosed() {
+        if (sendDataCount >= sendDataDelay){
+            progViewOut.setProgress(0.1, animated: true);
+            print("Set Status to Closed")
+            chatMessageField.text = "Set Status as Closed"
+            
+            let chatMessage = PFObject(className: "MatchMake");
+            //chatMessageField.text = "STATUS OPEN";
+            chatMessage["text"] = "STATUS:CLOSED"
+            chatMessage["user"] = PFUser.current();
+            chatMessage["current"] = postNumber;
+            chatMessage["type"] = "STATUS";
+            postNumber = postNumber + 1;
+            
+            chatMessage.saveInBackground { (success, error) in
+                if success {
+                    print("The Closed message was saved!")
+                    self.sendDataCount = 0;
+                    //self.chatMessageField.text = "";
+                } else if let error = error {
+                    print("Problem saving message: \(error.localizedDescription)")
+                }
+            }
+        }
+        else {
+            sendDataCount = sendDataCount + 1;
+            timeoutCounter = 0;
         }
     }
     
@@ -237,7 +280,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         if (self.anyUserOpen() == true){
             if (self.isUserReallyOpen() == true){
                 isAtemptingAck = true
-                timoutCounter = 0;
+                timeoutCounter = 0;
             }
         }
     }
@@ -319,32 +362,38 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     // Send Ack
     func SendAck(){
         print("In Send Ack")
-        
-        let chatMessage = PFObject(className: "MatchMake");
-        
-        if (AckLevel <= 0){
-            chatMessage["text"] = "FirstAck:\(userToMatchMake)"
+        if (sendDataCount >= sendDataDelay){
+            let chatMessage = PFObject(className: "MatchMake");
             
-            var test: String = "";
-            test = chatMessage["text"] as! String
-            print("Send Ack Test: " + test);
-        }
-        if (AckLevel > 0 && AckLevel <= 2){
-            chatMessage["text"] = "SecondAck:\(userToMatchMake)"
-            print("Send Second Ack Set: \(String(describing: chatMessage["text"]))")
-        }
-        
-        chatMessage["user"] = PFUser.current();
-        chatMessage["current"] = postNumber;
-        chatMessage["type"] = "ACK";
-        postNumber = postNumber + 1;
-        
-        chatMessage.saveInBackground { (success, error) in
-            if success {
-                print("The message was saved!")
-            } else if let error = error {
-                print("Problem saving message: \(error.localizedDescription)")
+            if (AckLevel <= 0){
+                chatMessage["text"] = "FirstAck:\(userToMatchMake)"
+                
+                var test: String = "";
+                test = chatMessage["text"] as! String
+                print("Send Ack Test: " + test);
             }
+            else if (AckLevel > 0 && AckLevel < 2){
+                chatMessage["text"] = "SecondAck:\(userToMatchMake)"
+                print("Send Second Ack Set: \(String(describing: chatMessage["text"]))")
+            }
+            
+            chatMessage["user"] = PFUser.current();
+            chatMessage["current"] = postNumber;
+            chatMessage["type"] = "ACK";
+            postNumber = postNumber + 1;
+            
+            chatMessage.saveInBackground { (success, error) in
+                if success {
+                    print("The message was saved!")
+                    self.sendDataCount = 0;
+                } else if let error = error {
+                    print("Problem saving message: \(error.localizedDescription)")
+                }
+            }
+        }
+        else{
+            sendDataCount = sendDataCount + 1;
+            timeoutCounter = timeoutCounter - 1;
         }
     }
     
@@ -369,19 +418,18 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             if (usr == self.userToMatchMake && typ == "ACK"){
                 print(("Test Listen Ack" + currUser))
                 // If second ack is found
-                if(msg == ("SecondAck:" + currUser)){
+                if(msg == ("SecondAck:" + currUser) && (AckLevel >= 1 )){
                     print ("Second Ack Found!")
                     chatMessageField.text = "ACK: 2"
-                    AckLevel = 4;
-                    queryLimit = 10;
+                    AckLevel = 2;
                     progViewOut.setProgress(0.7, animated: true);
-                    
+                    //setStatusAsClosed();
                 }
                     // If first ack is found
-                else if (msg == ("FirstAck:" + currUser)){
+                else if (msg == ("FirstAck:" + currUser) && (AckLevel >= 0 && AckLevel < 2)){
                     print ("First Ack Found!")
                     chatMessageField.text = "ACK: 1"
-                    AckLevel = 2;
+                    AckLevel = 1;
                     progViewOut.setProgress(0.6, animated: true);
                 }
                 else {
@@ -485,21 +533,27 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Sends Confirmation
     func SendConfirmation(){
-        let chatMessage = PFObject(className: "Confirm");
-        
-        chatMessage["text"] = "Confirm:\(userToMatchMake)"
-        chatMessage["user"] = PFUser.current();
-        chatMessage["current"] = postNumber;
-        chatMessage["type"] = "COF";
-        postNumber = postNumber + 1;
-        
-        chatMessage.saveInBackground { (success, error) in
-            if success {
-                print("Confirmation Saved!")
-                //self.chatMessageField.text = "";
-            } else if let error = error {
-                print("Problem saving Confirmation: \(error.localizedDescription)")
+        if (sendDataCount >= sendDataDelay){
+            let chatMessage = PFObject(className: "Confirm");
+            
+            chatMessage["text"] = "Confirm:\(userToMatchMake)"
+            chatMessage["user"] = PFUser.current();
+            chatMessage["current"] = postNumber;
+            chatMessage["type"] = "COF";
+            postNumber = postNumber + 1;
+            
+            chatMessage.saveInBackground { (success, error) in
+                if success {
+                    print("Confirmation Saved!")
+                    self.sendDataCount = 0;
+                } else if let error = error {
+                    print("Problem saving Confirmation: \(error.localizedDescription)")
+                }
             }
+        }
+        else{
+            sendDataCount = sendDataCount + 1;
+            timeoutCounter = 0;
         }
     }
     
@@ -543,10 +597,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             SendTestMsg()
             tableView.reloadData();
             
-            queryLimit = 15;
-            connectionsToSkip = 5;
+            queryLimit = 10;
+            connectionsToSkip = 3;
+            //sendDataDelay = 3
         }
-        timoutCounter = 0;
+        timeoutCounter = 0;
         activeConnection = true;
         // Put code here that will run once connection is final
         
@@ -612,6 +667,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Allows The User to Logout
     @IBAction func doLogout(_ sender: Any) {
+        setStatusAsClosed()
+        
         PFUser.logOutInBackground { (error) in
             if (error != nil) {
                 print("Error, cannot logout: \(String(describing: error))")
@@ -688,5 +745,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             }
         }
         return cell;
+    }
+    
+    //------------------------------ Trigger Closed Status ------------------------------//
+    
+    func applicationWillResignActive(_ application: UIApplication) {
+        setStatusAsClosed();
+    }
+    
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        setStatusAsClosed();
+    }
+    
+    func applicationWillTerminate(_ application: UIApplication) {
+        setStatusAsClosed();
     }
 }
