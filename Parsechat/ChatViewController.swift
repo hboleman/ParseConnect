@@ -38,8 +38,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var connectionsToSkip: Int = 0;
     var connectionCount: Int = 0;
     var reset: Bool = false;
-    var sendDataDelay: Int = 3;
-    var sendDataCount: Int = 3;
+    var sendDataDelay: Int = 2;
+    var sendDataCount: Int = 2;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,7 +81,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         connectionsToSkip = 0;
         progViewOut.setProgress(0, animated: false);
         //obstructorOut.alpha = 1;
-        sendDataCount = 3;
+        sendDataCount = 2;
     }
     
     // Removes garbage
@@ -225,7 +225,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage.saveInBackground { (success, error) in
                 if success {
                     print("The message was saved!")
-                    self.sendDataCount = 0;
+                    self.sendDataCount = 1;
                     //self.chatMessageField.text = "";
                 } else if let error = error {
                     print("Problem saving message: \(error.localizedDescription)")
@@ -256,7 +256,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage.saveInBackground { (success, error) in
                 if success {
                     print("The Closed message was saved!")
-                    self.sendDataCount = 0;
+                    self.sendDataCount = 1;
                     //self.chatMessageField.text = "";
                 } else if let error = error {
                     print("Problem saving message: \(error.localizedDescription)")
@@ -385,7 +385,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage.saveInBackground { (success, error) in
                 if success {
                     print("The message was saved!")
-                    self.sendDataCount = 0;
+                    self.sendDataCount = 1;
                 } else if let error = error {
                     print("Problem saving message: \(error.localizedDescription)")
                 }
@@ -545,7 +545,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage.saveInBackground { (success, error) in
                 if success {
                     print("Confirmation Saved!")
-                    self.sendDataCount = 0;
+                    self.sendDataCount = 1;
                 } else if let error = error {
                     print("Problem saving Confirmation: \(error.localizedDescription)")
                 }
