@@ -148,14 +148,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         let currTime = currentTime()
         
-        let compTime = currTime.addingTimeInterval(TimeInterval(expireTime))
+        let storedTime = obj["storedTime"] as! Date;
+        
+        let compTime = storedTime.addingTimeInterval(TimeInterval(expireTime))
         
 //        if ((obj["storedTime"]) == nil){
 //            print("EXPIRED")
 //            return true;
 //        }
-        
-        let storedTime = obj["storedTime"] as! Date;
         
         let result = dateComparison(date1: storedTime, date2: compTime)
         
