@@ -85,7 +85,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         connectionEstablished = false;
         freezeData = false;
         activeConnection = false;
-        queryLimit = 6;
+        queryLimit = 20;
         connectionCount = 0;
         connectionsToSkip = 0;
         progViewOut.setProgress(0, animated: false);
@@ -98,36 +98,38 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removes garbage
     func garbageCollection(){
-        for index in 0...10 {
-            let obj = chatMessages.randomElement() as! PFObject
-            
-            if (isExpired(obj: obj) == true){
+        if (chatMessages.count > 15){
+            for index in 0...chatMessages.count {
+                let obj = chatMessages[index]
                 
-                obj.deleteInBackground(block: { (sucess, error) in
-                    if (sucess == true){
-                        print("GarbageDelete: TRUE")
-                    }
-                    else {
-                        //print("GarbageDelete: FALSE")
-                    }
-                })
+                if (isExpired(obj: obj) == true){
+                    
+                    obj.deleteInBackground(block: { (sucess, error) in
+                        if (sucess == true){
+                            print("GarbageDelete: TRUE")
+                        }
+                        else {
+                            //print("GarbageDelete: FALSE")
+                        }
+                    })
+                }
             }
         }
     }
     
     // Removed a specified object
     func garbageObj(obj: PFObject){
-            if (isExpired(obj: obj) == true){
-                
-                obj.deleteInBackground(block: { (sucess, error) in
-                    if (sucess == true){
-                        print("Delete: TRUE")
-                    }
-                    else {
-                        print("Delete: FALSE")
-                    }
-                })
-            }
+        if (isExpired(obj: obj) == true){
+            
+            obj.deleteInBackground(block: { (sucess, error) in
+                if (sucess == true){
+                    print("Delete: TRUE")
+                }
+                else {
+                    print("Delete: FALSE")
+                }
+            })
+        }
     }
     
     // Does a timeout if connection not reached
@@ -790,11 +792,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let obj = dataStorage.removeFirst()
             
             let usr = (obj["user"] as? PFUser)!.username;
-//            let msg = (obj["text"] as? String)!;
-//            let typ = (obj["type"] as? String)!;
-//            let cur = (obj["current"] as? Int)!;
-//            let dat2 = (obj["otherDat"] as? String)!;
-//            let STime = (obj["storedTime"] as? Date)!;
+            //            let msg = (obj["text"] as? String)!;
+            //            let typ = (obj["type"] as? String)!;
+            //            let cur = (obj["current"] as? Int)!;
+            //            let dat2 = (obj["otherDat"] as? String)!;
+            //            let STime = (obj["storedTime"] as? Date)!;
             let typ2 = (obj["type2"] as? String)!;
             
             if (usr == userToMatchMake){
@@ -902,12 +904,12 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         // 1 X X X
         // 2 X X X
         // 3 X X X
-//        var inputArr = str.split(separator: "&");
-//        print("INPUT ARR: " + inputArr[0] + inputArr[1] + inputArr[2] + inputArr[3])
-//        let row = Int(inputArr[0])!;
-//        let col = Int(inputArr[1])!;
-//        let piece = String(inputArr[2]);
-//        turn = Int(String(inputArr[3]))!;
+        //        var inputArr = str.split(separator: "&");
+        //        print("INPUT ARR: " + inputArr[0] + inputArr[1] + inputArr[2] + inputArr[3])
+        //        let row = Int(inputArr[0])!;
+        //        let col = Int(inputArr[1])!;
+        //        let piece = String(inputArr[2]);
+        //        turn = Int(String(inputArr[3]))!;
         let row = row
         let col = col
         turn = turn + 1;
@@ -998,9 +1000,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             col = charToInt(char: String(str.character(at: 1)!))
             
             let piece = String(str.character(at: 2)!)
-//            row = Int(String(strMod.removeFirst()))!
-//            col = Int(String(strMod.removeFirst()))!
-//            let piece = String(strMod.removeFirst())
+            //            row = Int(String(strMod.removeFirst()))!
+            //            col = Int(String(strMod.removeFirst()))!
+            //            let piece = String(strMod.removeFirst())
             ticTacToeInput(row: row, col: col, piece: piece)
         }
     }
