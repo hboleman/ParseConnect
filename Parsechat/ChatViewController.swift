@@ -45,6 +45,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var dataPostCount: Int = 0
     var newDataIsAvailable: Bool = false;
     var ttt: Bool = false;
+    let expireTime = 20.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -96,17 +97,32 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removes garbage
     func garbageRemoval(){
-        //        print("In Garbage")
-        //        //while(chatMessages.count > 10){
-        //
-        //        PFObject.deleteAll(inBackground: chatMessages) { (sucess, error) in
-        //            if (sucess == true){
-        //                print("Delete: TRUE")
-        //            }
-        //            else {
-        //                print("Delete: FALSE")
-        //            }
-        //        }
+        for index in 0...10 {
+            let singleMessage = chatMessages.randomElement()
+            if (isExpired(obj: singleMessage!) == true){
+                singleMessage?.deleteInBackground(block: { (sucess, error) in
+                    if (sucess == true){
+                        print("Delete: TRUE")
+                    }
+                    else {
+                        print("Delete: FALSE")
+                    }
+                })
+            }
+        }
+    }
+    
+    func garbageObj(obj: PFObject){
+            if (isExpired(obj: obj) == true){
+                obj.deleteInBackground(block: { (sucess, error) in
+                    if (sucess == true){
+                        print("Delete: TRUE")
+                    }
+                    else {
+                        print("Delete: FALSE")
+                    }
+                })
+            }
     }
     
     // Does a timeout if connection not reached
@@ -118,6 +134,40 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             resetVals();
         }
         timeoutCounter = timeoutCounter + 1;
+    }
+    
+    func isExpired(obj: PFObject) -> Bool {
+        
+        let currTime = currentTime()
+        
+        let compTime = currTime.addingTimeInterval(expireTime)
+        
+        let storedTime = obj["storedTime"] as! Date;
+        
+        let dateComparisionResult: ComparisonResult = compTime.compare(storedTime)
+        
+        if dateComparisionResult == ComparisonResult.orderedAscending
+        {
+            // Current date is smaller than end date.
+            return false;
+        }
+        else if dateComparisionResult == ComparisonResult.orderedDescending
+        {
+            // Current date is greater than end date.
+            return true;
+        }
+        else if dateComparisionResult == ComparisonResult.orderedSame
+        {
+            // Current date and end date are same.
+            return true;
+        }
+        
+        //print("Not enough time has passed \(storedTime)")
+        return false
+    }
+    
+    func currentTime() -> Date {
+        return Date()
     }
     
     //------------------------------ Scheduled Timer Function ------------------------------//
@@ -230,6 +280,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage["user"] = PFUser.current();
             chatMessage["current"] = postNumber;
             chatMessage["type"] = "STATUS";
+            chatMessage["storedTime"] = currentTime();
             postNumber = postNumber + 1;
             
             chatMessage.saveInBackground { (success, error) in
@@ -260,6 +311,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage["user"] = PFUser.current();
             chatMessage["current"] = postNumber;
             chatMessage["type"] = "STATUS";
+            chatMessage["storedTime"] = currentTime();
             postNumber = postNumber + 1;
             
             chatMessage.saveInBackground { (success, error) in
@@ -308,6 +360,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let msg = (chatMessage["text"] as? String)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let typ = (chatMessage["type"] as? String)!;
+            let STime = (chatMessage["storedTime"] as? Date)!;
             
             if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username && typ == "STATUS"){
                 print ("STATUS IS CONFIRMED OPEN");
@@ -335,6 +388,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let curr = (chatMessage["current"] as? Int)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let typ = (chatMessage["type"] as? String)!;
+            let STime = (chatMessage["storedTime"] as? Date)!;
             // Find latest message
             if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "STATUS"){
                 mostRecentMsg = curr;
@@ -350,6 +404,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
+            let STime = (chatMessage["storedTime"] as? Date)!;
             
             // Finds most recent message based on work above
             if (usr == self.userToMatchMake && curr == mostRecentMsg && typ == "STATUS"){
@@ -389,6 +444,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage["user"] = PFUser.current();
             chatMessage["current"] = postNumber;
             chatMessage["type"] = "ACK";
+            chatMessage["storedTime"] = currentTime();
             postNumber = postNumber + 1;
             
             chatMessage.saveInBackground { (success, error) in
@@ -419,6 +475,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
+            let STime = (chatMessage["storedTime"] as? Date)!;
             
             var currUser: String = "";
             currUser = PFUser.current()?.username ?? "N/A";
@@ -549,6 +606,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             chatMessage["user"] = PFUser.current();
             chatMessage["current"] = postNumber;
             chatMessage["type"] = "COF";
+            chatMessage["storedTime"] = currentTime()
             postNumber = postNumber + 1;
             
             chatMessage.saveInBackground { (success, error) in
@@ -578,6 +636,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
+            let STime = (chatMessage["storedTime"] as? Date)!;
             
             var currUser: String = "";
             currUser = PFUser.current()?.username ?? "N/A";
@@ -628,6 +687,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         chatMessage["user"] = PFUser.current();
         chatMessage["text"] = "You are now talking to \(PFUser.current()?.username ?? "")"
         chatMessage["type"] = "msg";
+        chatMessage["storedTime"] = currentTime()
         chatMessage.saveInBackground { (success, error) in
             if success {
                 print("The message was saved!")
@@ -692,6 +752,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let typ = (obj["type"] as? String)!;
             let cur = (obj["current"] as? Int)!;
             let dat2 = (obj["otherDat"] as? String)!;
+            let STime = (obj["storedTime"] as? Date)!;
             let typ2 = (obj["type2"] as? String)!;
             
             if (usr == userToMatchMake){
@@ -716,6 +777,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         chatMessage["current"] = dataPostCount;
         chatMessage["otherDat"] = otherDat;
         chatMessage["type2"] = type2;
+        chatMessage["storedTime"] = currentTime()
         
         chatMessage.saveInBackground { (success, error) in
             if success {
@@ -755,6 +817,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         let msg = (obj["text"] as? String)!;
         let typ = (obj["type"] as? String)!;
         let cur = (obj["current"] as? Int)!;
+        let STime = (obj["storedTime"] as? Date)!;
         
         var isFound: Bool = false;
         
@@ -763,6 +826,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let msg_i = (dataStorage[index]["text"] as? String)!;
             let typ_i = (dataStorage[index]["type"] as? String)!;
             let cur_i = (dataStorage[index]["current"] as? Int)!;
+            let STime_i = (dataStorage[index]["storedTime"] as? Date)!;
             if (usr == usr_i && msg == msg_i && typ == typ_i && cur == cur_i){
                 isFound = true;
             }
