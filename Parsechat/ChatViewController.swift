@@ -36,8 +36,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var connectionEstablished: Bool = false;
     var freezeData: Bool = false;
     var activeConnection = false;
-    var queryLimit: Int = 4;
-    var connectionsToSkip: Int = 0;
+    var queryLimit: Int = 20;
+    var connectionsToSkip: Int = 4;
     var connectionCount: Int = 0;
     var reset: Bool = false;
     var sendDataDelay: Int = 2;
@@ -45,7 +45,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var dataPostCount: Int = 0
     var newDataIsAvailable: Bool = false;
     var ttt: Bool = false;
-    var expireTime = 20.0
+    var expireTime = 20.0 // Seconds
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -98,38 +98,38 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removes garbage
     func garbageCollection(){
-        if (chatMessages.count > 15){
-            for index in 0...chatMessages.count {
-                let obj = chatMessages[index]
-                
-                if (isExpired(obj: obj) == true){
-                    
-                    obj.deleteInBackground(block: { (sucess, error) in
-                        if (sucess == true){
-                            print("GarbageDelete: TRUE")
-                        }
-                        else {
-                            //print("GarbageDelete: FALSE")
-                        }
-                    })
-                }
-            }
-        }
+//        if (chatMessages.count > 15){
+//            for index in 0...chatMessages.count {
+//                let obj = chatMessages[index]
+//
+//                if (isExpired(obj: obj) == true){
+//
+//                    obj.deleteInBackground(block: { (sucess, error) in
+//                        if (sucess == true){
+//                            print("GarbageDelete: TRUE")
+//                        }
+//                        else {
+//                            //print("GarbageDelete: FALSE")
+//                        }
+//                    })
+//                }
+//            }
+//        }
     }
     
     // Removed a specified object
     func garbageObj(obj: PFObject){
-        if (isExpired(obj: obj) == true){
-            
-            obj.deleteInBackground(block: { (sucess, error) in
-                if (sucess == true){
-                    print("Delete: TRUE")
-                }
-                else {
-                    print("Delete: FALSE")
-                }
-            })
-        }
+//        if (isExpired(obj: obj) == true){
+//
+//            obj.deleteInBackground(block: { (sucess, error) in
+//                if (sucess == true){
+//                    print("Delete: TRUE")
+//                }
+//                else {
+//                    print("Delete: FALSE")
+//                }
+//            })
+//        }
     }
     
     // Does a timeout if connection not reached
@@ -148,40 +148,67 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         let currTime = currentTime()
         
-        let compTime = currTime.addingTimeInterval(expireTime)
+        let compTime = currTime.addingTimeInterval(TimeInterval(expireTime))
         
-        if ((obj["storedTime"]) == nil){
-            print("EXPIRED")
-            return true;
-        }
+//        if ((obj["storedTime"]) == nil){
+//            print("EXPIRED")
+//            return true;
+//        }
         
         let storedTime = obj["storedTime"] as! Date;
         
-        let dateComparisionResult: ComparisonResult = compTime.compare(storedTime)
+        let result = dateComparison(date1: storedTime, date2: compTime)
         
-        if dateComparisionResult == ComparisonResult.orderedAscending
-        {
-            // Current date is smaller than end date.
-            // Current date is greater than end date.
+        if (result == 1){
+            // storedTime larger than compTime
+            print("EXPIRED")
+            print("Curr  : \(currTime.description)")
+            print("Comp  : \(compTime.description)")
+            print("Stored: \(storedTime.description)")
+            print("Exp   : \(expireTime)")
+            print("Result :\(result)")
+            return true;
+        }
+        else if (result == -1){
+            // storedTime less than compTime
             print("NOT EXPIRED")
+            print("Curr  : \(currTime.description)")
+            print("Comp  : \(compTime.description)")
+            print("Stored: \(storedTime.description)")
+            print("Exp   : \(expireTime)")
+            print("Result :\(result)")
             return false;
         }
-        else if dateComparisionResult == ComparisonResult.orderedDescending
-        {
-            // Current date is smaller than end date.
+        else if (result == 0) {
+            // storedTime equals compTime
             print("EXPIRED")
+            print("Curr  : \(currTime.description)")
+            print("Comp  : \(compTime.description)")
+            print("Stored: \(storedTime.description)")
+            print("Exp   : \(expireTime)")
+            print("Result :\(result)")
             return true;
         }
-        else if dateComparisionResult == ComparisonResult.orderedSame
-        {
-            // Current date and end date are same.
-            print("EXPIRED")
-            return true;
+        else{
+            print("ERROR: Date Comparison Not working! -2")
+        }
+        return false
+    }
+    
+    // Date Comparison Function
+    func dateComparison(date1: Date, date2: Date) -> Int {
+        if date1 < date2 {
+            return -1
         }
         
-        //print("Not enough time has passed \(storedTime)")
-        print("NOT EXPIRED")
-        return false
+        if date1 > date2 {
+            return 1
+        }
+        
+        if date1 == date2 {
+            return 0
+        }
+        return -2
     }
     
     // Returns current time
@@ -388,7 +415,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 return true;
             }
             else if (isExpired(obj: chatMessage) == true){
-                print("Any User Open: isExpired")
+                //print("Any User Open: isExpired")
                 garbageObj(obj: chatMessage);
             }
         }
