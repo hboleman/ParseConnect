@@ -24,6 +24,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Global Variables
     var chatMessages: [PFObject] = [];
+    var dataStorage: [PFObject] = [];
+    var usedValues: [Int] = [];
     var userToMatchMake: String = "";
     var postNumber: Int = 0;
     var listeningForUsers: Bool = false;
@@ -34,12 +36,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var connectionEstablished: Bool = false;
     var freezeData: Bool = false;
     var activeConnection = false;
-    var queryLimit: Int = 6;
+    var queryLimit: Int = 4;
     var connectionsToSkip: Int = 0;
     var connectionCount: Int = 0;
     var reset: Bool = false;
     var sendDataDelay: Int = 2;
     var sendDataCount: Int = 2;
+    var dataPostCount: Int = 0
+    var newDataIsAvailable: Bool = false;
+    var ttt: Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,6 +74,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         matchMakeOut.title = "Match Make"
         matchMakeOut.tintColor = UIColor.blue;
         
+        // Disable to debug
+        //obstructorOut.alpha = 1;
+        
         userToMatchMake = "";
         listeningForUsers = false;
         isAtemptingAck = false;
@@ -76,12 +84,14 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         connectionEstablished = false;
         freezeData = false;
         activeConnection = false;
-        queryLimit = 10;
+        queryLimit = 6;
         connectionCount = 0;
         connectionsToSkip = 0;
         progViewOut.setProgress(0, animated: false);
-        //obstructorOut.alpha = 1;
         sendDataCount = 2;
+        dataPostCount = 0;
+        newDataIsAvailable = false;
+        ttt = false;
     }
     
     // Removes garbage
@@ -186,8 +196,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         progViewOut.setProgress(0, animated: false);
         //obstructorOut.alpha = 1;
-        // Sets getChatMessage to retrieve messages every 5 seconds
-        Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
+        // Sets getChatMessage to retrieve messages every x seconds
+        Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timedFunc), userInfo: nil, repeats: true)
         // runs getChatMessages for the first time
         timedFunc();
         startMatchMaking();
@@ -241,7 +251,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     //Set Match Status to Closed
     func setStatusAsClosed() {
         if (sendDataCount >= sendDataDelay){
-            progViewOut.setProgress(0.1, animated: true);
             print("Set Status to Closed")
             chatMessageField.text = "Set Status as Closed"
             
@@ -418,7 +427,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             if (usr == self.userToMatchMake && typ == "ACK"){
                 print(("Test Listen Ack" + currUser))
                 // If second ack is found
-                if(msg == ("SecondAck:" + currUser) && (AckLevel >= 1 )){
+                if(msg == ("SecondAck:" + currUser)){
                     print ("Second Ack Found!")
                     chatMessageField.text = "ACK: 2"
                     AckLevel = 2;
@@ -426,7 +435,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                     //setStatusAsClosed();
                 }
                     // If first ack is found
-                else if (msg == ("FirstAck:" + currUser) && (AckLevel >= 0 && AckLevel < 2)){
+                else if (msg == ("FirstAck:" + currUser)){
                     print ("First Ack Found!")
                     chatMessageField.text = "ACK: 1"
                     AckLevel = 1;
@@ -598,13 +607,18 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             tableView.reloadData();
             
             queryLimit = 10;
-            connectionsToSkip = 3;
+            connectionsToSkip = 6;
             //sendDataDelay = 3
         }
         timeoutCounter = 0;
         activeConnection = true;
         // Put code here that will run once connection is final
-        
+        if (newDataIsAvailable == true){
+            ParseData();
+        }
+        if (ttt == true){
+            ticTacToeCore();
+        }
     }
     
     // Sends the first test message when established
@@ -622,6 +636,314 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print("Problem saving message: \(error.localizedDescription)")
             }
         }
+    }
+    
+    //------------------------------ Arbritrary Data Logic ------------------------------//
+    
+    func WillHandleMsgBeforeFlight(str: String) -> Bool{
+        if (str == "menu"){
+            chatMessageField.text = "";
+            SendMsg(str: "Menu\n\n-tictactoe")
+        }
+            
+        else if (str == "tictactoe"){
+            chatMessageField.text = "";
+            ttt = true;
+            
+            return true;
+        }
+            
+        else if (isMyTurn() == true && ttt == true){
+            chatMessageField.text = "";
+            ticTacToeAskForInput(str: (str + myPiece));
+            return true;
+        }
+        else if(str == "update"){
+            ticTacToeDrawBoard();
+            return true
+        }
+        
+        return false;
+    }
+    
+    func SendMsg(str: String){
+        print("Inside sendMsg")
+        let chatMessage = PFObject(className: "Session")
+        chatMessage["user"] = PFUser.current();
+        chatMessage["text"] = ("Computer:\n" + str);
+        chatMessage["type"] = "msg";
+        chatMessage.saveInBackground { (success, error) in
+            if success {
+                print("The message was saved!")
+                //self.chatMessageField.text = "";
+            } else if let error = error {
+                print("Problem saving message: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // Will run when new data found.
+    func ParseData(){
+        while(dataStorage.isEmpty == false){
+            let obj = dataStorage.removeFirst()
+            
+            let usr = (obj["user"] as? PFUser)!.username;
+            let msg = (obj["text"] as? String)!;
+            let typ = (obj["type"] as? String)!;
+            let cur = (obj["current"] as? Int)!;
+            let dat2 = (obj["otherDat"] as? String)!;
+            let typ2 = (obj["type2"] as? String)!;
+            
+            if (usr == userToMatchMake){
+                if (dat2 == "TicTacToe"){
+                    if (ttt == false){
+                        ttt = true;
+                        myPiece = "O";
+                    }
+                }
+            }
+        }
+    }
+    
+    // Sends arbitrary data
+    func SendData(text: String, otherDat: String, type2: String){
+        print("Inside send data")
+        let chatMessage = PFObject(className: "Session")
+        chatMessage["user"] = PFUser.current();
+        chatMessage["text"] = text;
+        chatMessage["type"] = "DAT";
+        chatMessage["current"] = dataPostCount;
+        chatMessage["otherDat"] = otherDat;
+        chatMessage["type2"] = type2;
+        
+        chatMessage.saveInBackground { (success, error) in
+            if success {
+                print("Data was saved!")
+                self.dataPostCount = self.dataPostCount + 1;
+                //self.chatMessageField.text = "";
+            } else if let error = error {
+                print("Problem saving message: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func LookForData(){
+        //print("Looking for data")
+        let countOfMessages = self.chatMessages.count;
+        
+        for index in 0..<countOfMessages {
+            // gets a single message
+            let chatMessage = self.chatMessages[index];
+            //let usr = (chatMessage["user"] as? PFUser)!.username;
+            //let msg = (chatMessage["text"] as? String)!;
+            let typ = (chatMessage["type"] as? String)!;
+            //let cur = (chatMessage["current"] as? Int)!;
+            
+            //var currUser: String = "";
+            //currUser = PFUser.current()?.username ?? "N/A";
+            // Find latest message
+            if (typ == "DAT" && isNewData(obj: chatMessage)){
+                print("found new data");
+                newDataIsAvailable = true;
+            }
+        }
+    }
+    
+    func isNewData(obj: PFObject) -> Bool {
+        let usr = (obj["user"] as? PFUser)!.username;
+        let msg = (obj["text"] as? String)!;
+        let typ = (obj["type"] as? String)!;
+        let cur = (obj["current"] as? Int)!;
+        
+        var isFound: Bool = false;
+        
+        for index in 0..<dataStorage.count{
+            let usr_i = (dataStorage[index]["user"] as? PFUser)!.username;
+            let msg_i = (dataStorage[index]["text"] as? String)!;
+            let typ_i = (dataStorage[index]["type"] as? String)!;
+            let cur_i = (dataStorage[index]["current"] as? Int)!;
+            if (usr == usr_i && msg == msg_i && typ == typ_i && cur == cur_i){
+                isFound = true;
+            }
+            else {
+                // If not found, add to data storage
+                dataStorage.append(obj);
+            }
+        }
+        return isFound;
+    }
+    
+    //------------------------------ Tic Tac Toe ------------------------------//
+    
+    // Tic Tac Toe Data
+    var tttArr = [["-","-","-"],["-","-","-"],["-","-","-"]]
+    var turn: Int = 0;
+    var msg: String = "";
+    var myPiece: String = "";
+    var fullBoard: String = "";
+    
+    func ticTacToeInput(row: Int, col: Int, piece: String){
+        // Ex:T&2&X&123
+        // [row][col]
+        //   1 2 3
+        // 1 X X X
+        // 2 X X X
+        // 3 X X X
+//        var inputArr = str.split(separator: "&");
+//        print("INPUT ARR: " + inputArr[0] + inputArr[1] + inputArr[2] + inputArr[3])
+//        let row = Int(inputArr[0])!;
+//        let col = Int(inputArr[1])!;
+//        let piece = String(inputArr[2]);
+//        turn = Int(String(inputArr[3]))!;
+        let row = row
+        let col = col
+        turn = turn + 1;
+        
+        tttArr[(row - 1)][(col - 1)] = String(piece);
+        SendMsg(str: "Board Input Updated")
+        ticTacToeDrawBoard()
+    }
+    
+    func ticTacToeCore(){
+        if (turn == 0){
+            SendData(text: "Welcome to Tic Tac Toe!\nPlayer: \(String(PFUser.current()!.username!))\nWill Go First!", otherDat: "TicTacToe:::X-" + (PFUser.current()!.username!) + ":::O-" + userToMatchMake, type2: "TicTacToe");
+            myPiece = "X";
+            //playTurn();
+        }
+        if (isMyTurn() == true || turn == 0){
+            playTurn()
+        }
+        else {
+            
+        }
+    }
+    
+    func playTurn(){
+        ticTacToeDrawBoard()
+        let usrName = PFUser.current()?.username!
+        let msg = "\(usrName ?? "") Turn: selection Ex: 'M3' for middle 3.\n"
+        SendMsg(str: (msg + fullBoard))
+    }
+    
+    func isMyTurn() -> Bool {
+        var PlayerXCount: Int = 0;
+        var PlayerOCount: Int = 0;
+        
+        for index in 0...2{
+            for index2 in 0...2{
+                if (String(tttArr[index][index2]) == "X"){
+                    PlayerXCount = PlayerXCount + 1;
+                }
+                if (String(tttArr[index][index2]) == "O"){
+                    PlayerOCount = PlayerOCount + 1;
+                }
+            }
+        }
+        
+        if (myPiece == "X" && turn < 1){
+            return true;
+        }
+        else if (myPiece == "X"){
+            // If equal
+            if(PlayerXCount == PlayerOCount){
+                return true;
+            }
+                // If X one ahead
+            else if (PlayerXCount > PlayerOCount && (PlayerXCount - PlayerOCount) <= 1){
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        else if (myPiece == "O"){
+            // If equal
+            if(PlayerXCount == PlayerOCount){
+                return false;
+            }
+                // If X one ahead
+            else if (PlayerXCount > PlayerOCount && (PlayerXCount - PlayerOCount) <= 1){
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    func ticTacToeAskForInput(str: String){
+        var row: Int = 0;
+        var col: Int = 0;
+        // Ex:T&2&X&123
+        // [row][col]
+        //   1 2 3
+        // 1 X X X
+        // 2 X X X
+        // 3 X X X
+        if(str.count == 3){
+            row = charToInt(char: String(str.character(at: 0)!))
+            col = charToInt(char: String(str.character(at: 1)!))
+            
+            let piece = String(str.character(at: 2)!)
+//            row = Int(String(strMod.removeFirst()))!
+//            col = Int(String(strMod.removeFirst()))!
+//            let piece = String(strMod.removeFirst())
+            ticTacToeInput(row: row, col: col, piece: piece)
+        }
+    }
+    
+    func charToInt(char: String) -> Int {
+        if (char == "T"){
+            return 1;
+        }
+        if (char == "M"){
+            return 2;
+        }
+        if (char == "B"){
+            return 3;
+        }
+        if (char == "0"){
+            return 0;
+        }
+        if (char == "1"){
+            return 1;
+        }
+        if (char == "2"){
+            return 2;
+        }
+        if (char == "3"){
+            return 3;
+        }
+        if (char == "4"){
+            return 4;
+        }
+        if (char == "5"){
+            return 5;
+        }
+        if (char == "6"){
+            return 6;
+        }
+        if (char == "7"){
+            return 7;
+        }
+        if (char == "8"){
+            return 8;
+        }
+        if (char == "9"){
+            return 9;
+        }
+        return -1
+    }
+    
+    func ticTacToeDrawBoard(){
+        fullBoard = "";
+        let overhead = "  1 2 3"
+        let top = String("T " + tttArr[0][0] + " " + tttArr[0][1] + " " + tttArr[0][2]);
+        let mid = String("M " + tttArr[1][0] + " " + tttArr[1][1] + " " + tttArr[1][2]);
+        let btm = String("B " + tttArr[2][0] + " " + tttArr[2][1] + " " + tttArr[2][2]);
+        fullBoard = (msg + "\n" + overhead + "\n" + top + "\n" + mid + "\n" + btm);
+        SendMsg(str: fullBoard)
     }
     
     //------------------------------ Regular Chat Logic ------------------------------//
@@ -653,14 +975,18 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         print("Inside doSendMessage")
         let chatMessage = PFObject(className: "Session")
         chatMessage["text"] = chatMessageField.text!
-        chatMessage["user"] = PFUser.current();
-        chatMessage["type"] = "msg";
-        chatMessage.saveInBackground { (success, error) in
-            if success {
-                print("The message was saved!")
-                //self.chatMessageField.text = "";
-            } else if let error = error {
-                print("Problem saving message: \(error.localizedDescription)")
+        
+        if (WillHandleMsgBeforeFlight(str: chatMessageField.text!) == false) {
+            
+            chatMessage["user"] = PFUser.current();
+            chatMessage["type"] = "msg";
+            chatMessage.saveInBackground { (success, error) in
+                if success {
+                    print("The message was saved!")
+                    //self.chatMessageField.text = "";
+                } else if let error = error {
+                    print("Problem saving message: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -709,6 +1035,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Sets Table Cell Contents
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Parses any new data to data storage.
+        LookForData()
+        
         // gets a single message
         let chatMessage = chatMessages[indexPath.row];
         let usr = (chatMessage["user"] as? PFUser)!.username;
@@ -759,5 +1088,22 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func applicationWillTerminate(_ application: UIApplication) {
         setStatusAsClosed();
+    }
+}
+
+//------------------------------ String Extension ------------------------------//
+
+extension String {
+    
+    func index(at position: Int, from start: Index? = nil) -> Index? {
+        let startingIndex = start ?? startIndex
+        return index(startingIndex, offsetBy: position, limitedBy: endIndex)
+    }
+    
+    func character(at position: Int) -> Character? {
+        guard position >= 0, let indexPosition = index(at: position) else {
+            return nil
+        }
+        return self[indexPosition]
     }
 }
