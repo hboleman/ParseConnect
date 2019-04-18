@@ -655,7 +655,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             
         else if (isMyTurn() == true && ttt == true){
             chatMessageField.text = "";
-            ticTacToeAskForInput(str: (str + myPiece));
+            ticTacToeGetUserInput(str: (str + myPiece));
             return true;
         }
         else if(str == "update"){
@@ -695,10 +695,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let typ2 = (obj["type2"] as? String)!;
             
             if (usr == userToMatchMake){
-                if (dat2 == "TicTacToe"){
+                if (typ2 == "TicTacToe"){
                     if (ttt == false){
                         ttt = true;
                         myPiece = "O";
+                        print("TTT: Relized is second player: O")
                     }
                 }
             }
@@ -819,10 +820,9 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     }
     
     func playTurn(){
+        msg = "Selection Ex: 'M3' for middle 3.\n"
         ticTacToeDrawBoard()
-        let usrName = PFUser.current()?.username!
-        let msg = "\(usrName ?? "") Turn: selection Ex: 'M3' for middle 3.\n"
-        SendMsg(str: (msg + fullBoard))
+        //let usrName = PFUser.current()?.username!
     }
     
     func isMyTurn() -> Bool {
@@ -872,7 +872,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         return false;
     }
     
-    func ticTacToeAskForInput(str: String){
+    func ticTacToeGetUserInput(str: String){
         var row: Int = 0;
         var col: Int = 0;
         // Ex:T&2&X&123
@@ -881,7 +881,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         // 1 X X X
         // 2 X X X
         // 3 X X X
-        if(str.count == 3){
+        if(str.count == 3 && isMyTurn() == true){
             row = charToInt(char: String(str.character(at: 0)!))
             col = charToInt(char: String(str.character(at: 1)!))
             
@@ -938,12 +938,23 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     func ticTacToeDrawBoard(){
         fullBoard = "";
+        var turnSel = "";
+        if (isMyTurn() == true){
+            let usrName = PFUser.current()?.username
+            turnSel = usrName ?? "";
+        }
+        else {
+            let usrName = userToMatchMake
+            turnSel = usrName
+        }
+        let whosTurn = ("Turn: " + turnSel)
         let overhead = "  1 2 3"
         let top = String("T " + tttArr[0][0] + " " + tttArr[0][1] + " " + tttArr[0][2]);
         let mid = String("M " + tttArr[1][0] + " " + tttArr[1][1] + " " + tttArr[1][2]);
         let btm = String("B " + tttArr[2][0] + " " + tttArr[2][1] + " " + tttArr[2][2]);
-        fullBoard = (msg + "\n" + overhead + "\n" + top + "\n" + mid + "\n" + btm);
+        fullBoard = (msg + "\n" + whosTurn + "\n" + overhead + "\n" + top + "\n" + mid + "\n" + btm);
         SendMsg(str: fullBoard)
+        msg = ""
     }
     
     //------------------------------ Regular Chat Logic ------------------------------//
