@@ -45,7 +45,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var dataPostCount: Int = 0
     var newDataIsAvailable: Bool = false;
     var ttt: Bool = false;
-    let expireTime = 20.0
+    var expireTime = 20.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -93,30 +93,31 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         dataPostCount = 0;
         newDataIsAvailable = false;
         ttt = false;
+        expireTime = 20.0;
     }
     
     // Removes garbage
-    func garbageRemoval(){
-//        for index in 0...10 {
-//            let singleMessage = chatMessages.randomElement()
-//            if (isExpired(obj: singleMessage!) == true){
-//                singleMessage?.deleteInBackground(block: { (sucess, error) in
-//                    if (sucess == true){
-//                        print("Delete: TRUE")
-//                    }
-//                    else {
-//                        print("Delete: FALSE")
-//                    }
-//                })
-//            }
-//        }
-    }
-    
-    func garbageObj(obj: PFObject){
+    func garbageCollection(){
+        for index in 0...10 {
+            let obj = chatMessages.randomElement() as! PFObject
+            
             if (isExpired(obj: obj) == true){
                 
-//                obj.deleteEventually();
-//                print("DELETED MAYBE?")
+                obj.deleteInBackground(block: { (sucess, error) in
+                    if (sucess == true){
+                        print("GarbageDelete: TRUE")
+                    }
+                    else {
+                        //print("GarbageDelete: FALSE")
+                    }
+                })
+            }
+        }
+    }
+    
+    // Removed a specified object
+    func garbageObj(obj: PFObject){
+            if (isExpired(obj: obj) == true){
                 
                 obj.deleteInBackground(block: { (sucess, error) in
                     if (sucess == true){
@@ -140,6 +141,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         timeoutCounter = timeoutCounter + 1;
     }
     
+    // Finds if object is expired or not
     func isExpired(obj: PFObject) -> Bool {
         
         let currTime = currentTime()
@@ -158,12 +160,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         if dateComparisionResult == ComparisonResult.orderedAscending
         {
             // Current date is smaller than end date.
+            // Current date is greater than end date.
             print("NOT EXPIRED")
             return false;
         }
         else if dateComparisionResult == ComparisonResult.orderedDescending
         {
-            // Current date is greater than end date.
+            // Current date is smaller than end date.
             print("EXPIRED")
             return true;
         }
@@ -179,6 +182,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         return false
     }
     
+    // Returns current time
     func currentTime() -> Date {
         return Date()
     }
@@ -189,7 +193,6 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     @objc func timedFunc() {
         if(reset == false){
             if (connectionCount >= connectionsToSkip){
-                garbageRemoval()
                 connectionCount = 0;
                 matchMakeOut.isEnabled = false;
                 matchMakeOut.title = "Waiting"
@@ -272,7 +275,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         print("Start MatchMaking")
         //chatMessageField.text = "Start MatchMaking"
         getMatchParseData();
-        garbageRemoval();
+        garbageCollection();
         resetVals();
         setStatusAsOpen();
         getMatchParseData();
@@ -374,7 +377,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let msg = (chatMessage["text"] as? String)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let typ = (chatMessage["type"] as? String)!;
-            let STime = (chatMessage["storedTime"] as? Date)!;
+            //let STime = (chatMessage["storedTime"] as? Date)!;
             
             if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username && typ == "STATUS" && isExpired(obj: chatMessage) == false){
                 print ("STATUS IS CONFIRMED OPEN");
@@ -406,11 +409,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let curr = (chatMessage["current"] as? Int)!;
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let typ = (chatMessage["type"] as? String)!;
-            let STime = (chatMessage["storedTime"] as? Date)!;
+            //let STime = (chatMessage["storedTime"] as? Date)!;
             // Find latest message
-            if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "STATUS"){
+            if (usr == self.userToMatchMake && curr > mostRecentMsg && typ == "STATUS" && isExpired(obj: chatMessage) == false){
                 mostRecentMsg = curr;
                 print ("Most recent message found is: \(curr)");
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
         
@@ -422,10 +429,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
-            let STime = (chatMessage["storedTime"] as? Date)!;
+            //let STime = (chatMessage["storedTime"] as? Date)!;
             
             // Finds most recent message based on work above
-            if (usr == self.userToMatchMake && curr == mostRecentMsg && typ == "STATUS"){
+            if (usr == self.userToMatchMake && curr == mostRecentMsg && typ == "STATUS" && isExpired(obj: chatMessage) == false){
                 if (msg == "STATUS:OPEN"){
                     print ("FOUND: OPEN AND RECENT")
                     return true;
@@ -434,6 +441,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                     print ("REJECT: OPEN BUT NOT RECENT")
                     return false;
                 }
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
         return false;
@@ -493,13 +504,13 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
-            let STime = (chatMessage["storedTime"] as? Date)!;
+            //let STime = (chatMessage["storedTime"] as? Date)!;
             
             var currUser: String = "";
             currUser = PFUser.current()?.username ?? "N/A";
             
             // Finds most recent message based on work above
-            if (usr == self.userToMatchMake && typ == "ACK"){
+            if (usr == self.userToMatchMake && typ == "ACK" && isExpired(obj: chatMessage) == false){
                 print(("Test Listen Ack" + currUser))
                 // If second ack is found
                 if(msg == ("SecondAck:" + currUser)){
@@ -519,6 +530,10 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 else {
                     
                 }
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
     }
@@ -547,6 +562,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 self.matchMakeOut.tintColor = UIColor.gray;
             }
             print ("reload tableView")
+            self.garbageCollection();
             self.tableView.reloadData();
         }
     }
@@ -571,6 +587,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print("Successfully retrieved Confirmation Data \(message.count) posts.")
             }
             print ("reload tableView")
+            self.garbageCollection();
             self.tableView.reloadData();
             self.matchMakeOut.tintColor = UIColor.gray;
         }
@@ -596,6 +613,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
                 print("Successfully retrieved Session Data \(message.count) posts.")
             }
             print ("reload tableView")
+            self.garbageCollection();
             self.tableView.reloadData();
             self.matchMakeOut.tintColor = UIColor.gray;
         }
@@ -654,15 +672,19 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let usr = (chatMessage["user"] as? PFUser)!.username;
             let msg = (chatMessage["text"] as? String)!;
             let typ = (chatMessage["type"] as? String)!;
-            let STime = (chatMessage["storedTime"] as? Date)!;
+            //let STime = (chatMessage["storedTime"] as? Date)!;
             
             var currUser: String = "";
             currUser = PFUser.current()?.username ?? "N/A";
             // Find latest message
-            if (usr == self.userToMatchMake && typ == "COF" && msg == ("Confirm:" + currUser)){
+            if (usr == self.userToMatchMake && typ == "COF" && msg == ("Confirm:" + currUser) && isExpired(obj: chatMessage) == false){
                 connectionEstablished = true;
                 print ("Connection Established");
                 progViewOut.setProgress(0.9, animated: true);
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
     }
@@ -683,6 +705,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             SendTestMsg()
             tableView.reloadData();
             
+            expireTime = 60.0
             queryLimit = 10;
             connectionsToSkip = 6;
             //sendDataDelay = 3
@@ -733,7 +756,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             
         else if (isMyTurn() == true && ttt == true){
             chatMessageField.text = "";
-            ticTacToeGetUserInput(str: (str + myPiece));
+            ticTacToeCaptureUserInput(str: (str + myPiece));
             return true;
         }
         else if(str == "update"){
@@ -750,6 +773,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         chatMessage["user"] = PFUser.current();
         chatMessage["text"] = ("Computer:\n" + str);
         chatMessage["type"] = "msg";
+        chatMessage["storedTime"] = currentTime()
         chatMessage.saveInBackground { (success, error) in
             if success {
                 print("The message was saved!")
@@ -766,11 +790,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let obj = dataStorage.removeFirst()
             
             let usr = (obj["user"] as? PFUser)!.username;
-            let msg = (obj["text"] as? String)!;
-            let typ = (obj["type"] as? String)!;
-            let cur = (obj["current"] as? Int)!;
-            let dat2 = (obj["otherDat"] as? String)!;
-            let STime = (obj["storedTime"] as? Date)!;
+//            let msg = (obj["text"] as? String)!;
+//            let typ = (obj["type"] as? String)!;
+//            let cur = (obj["current"] as? Int)!;
+//            let dat2 = (obj["otherDat"] as? String)!;
+//            let STime = (obj["storedTime"] as? Date)!;
             let typ2 = (obj["type2"] as? String)!;
             
             if (usr == userToMatchMake){
@@ -808,6 +832,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
     }
     
+    // Looks through chat messages for data, then grabs data if available
     func LookForData(){
         //print("Looking for data")
         let countOfMessages = self.chatMessages.count;
@@ -823,19 +848,24 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             //var currUser: String = "";
             //currUser = PFUser.current()?.username ?? "N/A";
             // Find latest message
-            if (typ == "DAT" && isNewData(obj: chatMessage)){
+            if (typ == "DAT" && isNewData(obj: chatMessage) && isExpired(obj: chatMessage) == false){
                 print("found new data");
                 newDataIsAvailable = true;
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
     }
     
+    // Finds if data seen in the stream is new data
     func isNewData(obj: PFObject) -> Bool {
         let usr = (obj["user"] as? PFUser)!.username;
         let msg = (obj["text"] as? String)!;
         let typ = (obj["type"] as? String)!;
         let cur = (obj["current"] as? Int)!;
-        let STime = (obj["storedTime"] as? Date)!;
+        //let STime = (obj["storedTime"] as? Date)!;
         
         var isFound: Bool = false;
         
@@ -844,7 +874,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let msg_i = (dataStorage[index]["text"] as? String)!;
             let typ_i = (dataStorage[index]["type"] as? String)!;
             let cur_i = (dataStorage[index]["current"] as? Int)!;
-            let STime_i = (dataStorage[index]["storedTime"] as? Date)!;
+            //let STime_i = (dataStorage[index]["storedTime"] as? Date)!;
             if (usr == usr_i && msg == msg_i && typ == typ_i && cur == cur_i){
                 isFound = true;
             }
@@ -954,7 +984,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         return false;
     }
     
-    func ticTacToeGetUserInput(str: String){
+    func ticTacToeCaptureUserInput(str: String){
         var row: Int = 0;
         var col: Int = 0;
         // Ex:T&2&X&123
