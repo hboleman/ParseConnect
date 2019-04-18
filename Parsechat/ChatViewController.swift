@@ -97,23 +97,27 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removes garbage
     func garbageRemoval(){
-        for index in 0...10 {
-            let singleMessage = chatMessages.randomElement()
-            if (isExpired(obj: singleMessage!) == true){
-                singleMessage?.deleteInBackground(block: { (sucess, error) in
-                    if (sucess == true){
-                        print("Delete: TRUE")
-                    }
-                    else {
-                        print("Delete: FALSE")
-                    }
-                })
-            }
-        }
+//        for index in 0...10 {
+//            let singleMessage = chatMessages.randomElement()
+//            if (isExpired(obj: singleMessage!) == true){
+//                singleMessage?.deleteInBackground(block: { (sucess, error) in
+//                    if (sucess == true){
+//                        print("Delete: TRUE")
+//                    }
+//                    else {
+//                        print("Delete: FALSE")
+//                    }
+//                })
+//            }
+//        }
     }
     
     func garbageObj(obj: PFObject){
             if (isExpired(obj: obj) == true){
+                
+//                obj.deleteEventually();
+//                print("DELETED MAYBE?")
+                
                 obj.deleteInBackground(block: { (sucess, error) in
                     if (sucess == true){
                         print("Delete: TRUE")
@@ -142,6 +146,11 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         let compTime = currTime.addingTimeInterval(expireTime)
         
+        if ((obj["storedTime"]) == nil){
+            print("EXPIRED")
+            return true;
+        }
+        
         let storedTime = obj["storedTime"] as! Date;
         
         let dateComparisionResult: ComparisonResult = compTime.compare(storedTime)
@@ -149,20 +158,24 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         if dateComparisionResult == ComparisonResult.orderedAscending
         {
             // Current date is smaller than end date.
+            print("NOT EXPIRED")
             return false;
         }
         else if dateComparisionResult == ComparisonResult.orderedDescending
         {
             // Current date is greater than end date.
+            print("EXPIRED")
             return true;
         }
         else if dateComparisionResult == ComparisonResult.orderedSame
         {
             // Current date and end date are same.
+            print("EXPIRED")
             return true;
         }
         
         //print("Not enough time has passed \(storedTime)")
+        print("NOT EXPIRED")
         return false
     }
     
@@ -176,6 +189,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     @objc func timedFunc() {
         if(reset == false){
             if (connectionCount >= connectionsToSkip){
+                garbageRemoval()
                 connectionCount = 0;
                 matchMakeOut.isEnabled = false;
                 matchMakeOut.title = "Waiting"
@@ -223,7 +237,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         }
         else{
             if(connectionCount >= connectionsToSkip){
-                resetVals()
+                connectionCount = 0;
             }
             else{
                 connectionCount = connectionCount + 1;
@@ -362,11 +376,15 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             let typ = (chatMessage["type"] as? String)!;
             let STime = (chatMessage["storedTime"] as? Date)!;
             
-            if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username && typ == "STATUS"){
+            if (msg == "STATUS:OPEN" && usr != PFUser.current()?.username && typ == "STATUS" && isExpired(obj: chatMessage) == false){
                 print ("STATUS IS CONFIRMED OPEN");
                 print ("OPEN: \(String(describing: usr))");
                 self.userToMatchMake = usr!;
                 return true;
+            }
+            else if (isExpired(obj: chatMessage) == true){
+                print("Any User Open: isExpired")
+                garbageObj(obj: chatMessage);
             }
         }
         return false;
