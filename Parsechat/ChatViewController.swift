@@ -36,8 +36,8 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     var connectionEstablished: Bool = false;
     var freezeData: Bool = false;
     var activeConnection = false;
-    var queryLimit: Int = 20;
-    var connectionsToSkip: Int = 4;
+    var queryLimit: Int = 4;
+    var connectionsToSkip: Int = 0;
     var connectionCount: Int = 0;
     var reset: Bool = false;
     var sendDataDelay: Int = 2;
@@ -85,7 +85,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         connectionEstablished = false;
         freezeData = false;
         activeConnection = false;
-        queryLimit = 20;
+        queryLimit = 4;
         connectionCount = 0;
         connectionsToSkip = 0;
         progViewOut.setProgress(0, animated: false);
@@ -119,17 +119,17 @@ class ChatViewController: UIViewController, UITableViewDataSource {
     
     // Removed a specified object
     func garbageObj(obj: PFObject){
-//        if (isExpired(obj: obj) == true){
-//
-//            obj.deleteInBackground(block: { (sucess, error) in
-//                if (sucess == true){
-//                    print("Delete: TRUE")
-//                }
-//                else {
-//                    print("Delete: FALSE")
-//                }
-//            })
-//        }
+        if (isExpired(obj: obj) == true){
+
+            obj.deleteInBackground(block: { (sucess, error) in
+                if (sucess == true){
+                    print("Delete: TRUE")
+                }
+                else {
+                    print("Delete: FALSE")
+                }
+            })
+        }
     }
     
     // Does a timeout if connection not reached
@@ -148,17 +148,17 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         let currTime = currentTime()
         
+                if ((obj["storedTime"]) == nil){
+                    print("EXPIRED")
+                    return true;
+                }
+
         let storedTime = obj["storedTime"] as! Date;
-        
-        let compTime = storedTime.addingTimeInterval(TimeInterval(expireTime))
-        
-//        if ((obj["storedTime"]) == nil){
-//            print("EXPIRED")
-//            return true;
-//        }
-        
-        let result = dateComparison(date1: storedTime, date2: compTime)
-        
+
+        let compTime = storedTime.addingTimeInterval(expireTime)
+
+        let result = dateComparison(date1: currTime, date2: compTime)
+
         if (result == 1){
             // storedTime larger than compTime
             print("EXPIRED")
@@ -735,7 +735,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
             tableView.reloadData();
             
             expireTime = 60.0
-            queryLimit = 10;
+            queryLimit = 30;
             connectionsToSkip = 6;
             //sendDataDelay = 3
         }
