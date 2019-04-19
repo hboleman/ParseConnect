@@ -62,7 +62,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         
         progViewOut.setProgress(0, animated: false);
         // Set Alpha to Zero for Debug
-        obstructorOut.alpha = 0;
+        obstructorOut.alpha = 1;
     }
     
     //------------------------------ Utility Functions ------------------------------//
@@ -76,7 +76,7 @@ class ChatViewController: UIViewController, UITableViewDataSource {
         matchMakeOut.tintColor = UIColor.blue;
         
         // Disable to debug
-        //obstructorOut.alpha = 1;
+        obstructorOut.alpha = 1;
         
         userToMatchMake = "";
         listeningForUsers = false;
